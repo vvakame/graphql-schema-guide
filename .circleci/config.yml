@@ -22,5 +22,5 @@ jobs:
           name: Build PDF
           command: npm run pdf
       - store_artifacts:
-          path: ./articles/ReVIEW-Template.pdf
-          destination: ReVIEW-Template.pdf
+          path: ./articles/graphql-schema-guide.pdf
+          destination: graphql-schema-guide.pdf

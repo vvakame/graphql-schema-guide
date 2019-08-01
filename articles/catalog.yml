@@ -7,4 +7,4 @@ CHAPS:
 APPENDIX:
 
 POSTDEF:
-  - contributors.re
+#   - contributors.re
