@@ -1,0 +1,3 @@
+[submodule "prh-rules"]
+	path = prh-rules
+	url = git@github.com:prh/rules.git
