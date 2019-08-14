@@ -1,7 +1,38 @@
 = 前書き
 
-前書きなのだ。
-やっていきなのだ。
+本書は筆者（@vvakame）がGraphQL@<fn>{graphql-url}を使った開発の中で得た知見を振り返り、解説するものです。
+過去にGo言語+gqlgen@<fn>{gqlgen-web}という構成で、MTC2018カンファレンスLP@<fn>{mtc2018}、技術書典Web@<fn>{tbf-web}、弊社社内ツール@<fn>{internal-tool}を作成してきました。
+ここでの経験値をここで活かしていくスタイル…！
+
+//footnote[graphql-url][@<href>{https://graphql.org}]
+#@# prh:disable:web
+//footnote[gqlgen-web][@<href>{https://gqlgen.com/}]
+//footnote[mtc2018][@<href>{https://tech.mercari.com/entry/2018/10/24/111227}]
+#@# prh:disable:web
+//footnote[tbf-web][@<href>{https://techbookfest.org/}]
+//footnote[internal-tool][今のところ外部で詳細な話をしたことがない。Spanner向けサポートツール]
+
+スキーマを中心に据えたベストプラクティスを書こうと思います。
+なので、Go言語に限らず、そしてスキーマファースト・コードファーストに限らず、読み進められるものになる（はず）です。
+
+GraphQLの基礎はスキーマであり、どう設計するかでクライアントがどの程度楽をできるか、サーバ側で制限をかけやすくなるかなどが決まります。
+また、運用を開始した後だとスキーマを変えるのは他のプロトコルと同程度には気を使うと思いますので最初にそれなりに正しい設計を考えておきたいものです。
+本書の主張をめちゃめちゃ端的に表すと 1. GitHub v4 APIに倣え！ 2. Relayの仕様を学べ！ の2点に集約されるといっても過言ではないでしょう。
+
+本書の前身として、"GraphQLサーバをGo言語で作る"@<fn>{graphql-with-go-book}と"Apolloドハマリ事件簿"@<fn>{apollo-swamped-book}があります。
+booth.pmで販売またはGitHubで全文を公開していますので、こちらもぜひ読んでみてください。
+
+//footnote[graphql-with-go-book][@<href>{https://vvakame.booth.pm/items/1055228}]
+//footnote[apollo-swamped-book][@<href>{https://vvakame.booth.pm/items/1321051}]
+
+== GraphQL概要
+
+GraphQLはGraph構造のデータから任意のデータを取り出すためのQuery Languageです。
+GraphQLスキーマはデータの構造+データ間の繋がり+型によって定義されます。
+もちろん、静的型付けなので実行前にクエリが正しいか、フロントエンドのコンポーネント内でデータの形式が噛み合っているかをチェックさせることができます。
+最高ですね！
+
+TODO GraphQLの概念図を書く
 
 //comment{
  * 技術書典で得た知見の話
