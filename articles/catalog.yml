@@ -3,6 +3,10 @@ PREDEF:
 
 CHAPS:
   - github.re
+  - relay.re
+  - database.re
+  - tips.re
+  - linter.re
 
 APPENDIX:
 
