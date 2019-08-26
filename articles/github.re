@@ -1,4 +1,4 @@
-= GitHub v4 APIに倣え！
+={github} GitHub v4 APIに倣え！
 
 GitHubはGraphQLを使ったv4 APIを提供しています@<fn>{github-v4}。
 GitHubはおそらく皆さん使っているでしょうから、GitHub自体の説明などは省いてよいでしょう。

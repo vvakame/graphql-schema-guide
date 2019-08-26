@@ -19,6 +19,11 @@ GraphQLの基礎はスキーマであり、どう設計するかでクライア�
 また、運用を開始した後だとスキーマを変えるのは他のプロトコルと同程度には気を使うと思いますので最初にそれなりに正しい設計を考えておきたいものです。
 本書の主張をめちゃめちゃ端的に表すと 1. GitHub v4 APIに倣え！ 2. Relayの仕様を学べ！ の2点に集約されるといっても過言ではないでしょう。
 
+お断りとして、筆者は普段MySQLなどに代表される@<kw>{RDB,Relational Database}を使っていません。
+本書ではRDBが背景にある場合についても言及しますが、実践に裏打ちされたものではないため不足がないかどうかはわかりません。
+筆者としてはGoogle Cloud DatastoreやGoogle Cloud Spannerなどの分散データベースの利用をお勧めしています。
+AWSは知らん！たぶんAuroraあたりがそうなんじゃないでしょうか一回もやったことないけど。
+
 本書の前身として、"GraphQLサーバをGo言語で作る"@<fn>{graphql-with-go-book}と"Apolloドハマリ事件簿"@<fn>{apollo-swamped-book}があります。
 booth.pmで販売またはGitHubで全文を公開していますので、こちらもぜひ読んでみてください。
 
@@ -37,7 +42,7 @@ GraphQLスキーマはデータの構造+データ間の繋がり+型によっ�
 
 SQLとGraphQLはDBへのクエリとサーバAPIへのクエリという点でだいぶ隔たりがありますが、比較してみます。
 
-SQLは@<kw>{RDB,Relation Database}に対してデータを要求する時に使います。
+SQLは@<kw>{RDB,Relational Database}に対してデータを要求する時に使います。
 結果は基本的に表形式、つまり2次元のデータとして得られます。
 
 一方GraphQLはサーバAPIに対してデータを要求する時に使います。
@@ -88,6 +93,10 @@ GraphQLのスキーマとDB上のデータをつなぎ合わせるためには�
  ** グラフ構造を作らないと楽にならない
  ** resolverを使い倒す必要がある
  * 誰にGraphQLをオススメするか？という話
+ * Introspection Queryの話
+ * Union types をクライアント側でうまくハンドリングする話難しそう
+ ** サーバ側でこうすると辛いよ〜みたいな話…する？（できなさそう）
  * https://tech.mercari.com/entry/2018/10/24/111227 あたり読み返す？
  * https://github.com/vvakame/graphql-with-go-book に何書いたかも忘れた
+ * https://altair.sirmuel.design/
 //}
