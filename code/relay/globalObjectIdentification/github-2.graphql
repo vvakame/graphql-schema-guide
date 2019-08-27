@@ -1,0 +1,10 @@
+{
+  node(id: "MDEyOk9yZ2FuaXphdGlvbjEzNDIwMDQ=") {
+    __typename
+    id
+    ... on Organization {
+      databaseId
+      login
+    }
+  }
+}

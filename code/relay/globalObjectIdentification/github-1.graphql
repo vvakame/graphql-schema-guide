@@ -1,0 +1,8 @@
+{
+  organization(login: "Google") {
+    __typename
+    id
+    databaseId
+    login
+  }
+}
