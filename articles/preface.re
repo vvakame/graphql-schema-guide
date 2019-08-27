@@ -99,4 +99,8 @@ GraphQLのスキーマとDB上のデータをつなぎ合わせるためには�
  * https://tech.mercari.com/entry/2018/10/24/111227 あたり読み返す？
  * https://github.com/vvakame/graphql-with-go-book に何書いたかも忘れた
  * https://altair.sirmuel.design/
+ * 命名規則の話
+ ** foos と fooList どっち？
+ ** 技術書典とGitHubは前者 某社内ツールは後者
+ ** 今んとこ前者がよい気がする List とか Connection みたいな用語が複数出てこないほうがわかりやすいので
 //}
