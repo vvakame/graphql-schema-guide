@@ -1,0 +1,18 @@
+# リポジトリを20、その下のIssueを30、つまり 20+20×30 Entity最大で取得する
+{
+  viewer {
+    # first: 20 なので最大20件取得できる
+    repositories(first: 20) {
+      nodes {
+        name
+        # first: 30 なので最大30件取得できる
+        issues(first: 30) {
+          nodes {
+            title
+            bodyText
+          }
+        }
+      }
+    }
+  }
+}

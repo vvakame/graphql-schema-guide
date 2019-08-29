@@ -1,0 +1,33 @@
+type Query {
+  repositories(
+    # 次方向ページングの時に使う
+    first: Int
+    after: String
+
+    # 前方向ページングの時に使う
+    last: Int
+    before: String
+  ): RepositoryConnection
+}
+
+type RepositoryConnection {
+  pageInfo: PageInfo
+  edges: [RepositoryEdge]
+}
+
+type PageInfo {
+  hasPreviousPage: Boolean!
+  startCursor: String
+  hasNextPage: Boolean!
+  endCursor: String
+}
+
+type RepositoryEdge {
+  cursor: String!
+  node: Repository
+}
+
+type Repository {
+  id: ID!
+  name: String!
+}

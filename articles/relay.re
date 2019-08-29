@@ -6,7 +6,7 @@ Relay@<fn>{relay}はFacebookが作成しているReact+GraphQLでフロントエ
 
 //footnote[relay][@<href>{https://relay.dev/}]
 
-@<chapref>{github}で解説しているように、GitHubですらRelayの追加仕様をほぼ踏襲しています。
+@<chapref>{github}で解説しているように、我々が見習うべきGitHubもRelayの追加仕様をほぼ踏襲しています。
 
 Relayが求めるサーバ側（スキーマ）の仕様の狙いは次のとおりです。
 
@@ -17,11 +17,6 @@ Relayが求めるサーバ側（スキーマ）の仕様の狙いは次のとお
 これを具体的な仕様として説明してみます。
 TODO 消す
 
- * Cursor Connections（カーソルによるリストの連結）@<fn>{cursor-connections}
- ** ページネーションが必要な箇所はこの構造にするべし
- ** リストを返したい箇所で@<code>{Connection}サフィックスの型を用意する
- ** @<code>{first: Int!}と@<code>{after: String}を引数に設ける
- ** Connectionはcursorを持てる@<code>{Edge}と、ページング情報をもつ@<code>{PageInfo}をもつ
  * Input Object Mutations（@<code>{clientMutationId}をつけよう）@<fn>{input-object-mutations}
  ** Mutationのinputに@<code>{clientMutationId: String}をつけて、返り値にも同値をコピーする
  ** リクエストとレスポンスのひも付きがわかりやすいよ！
@@ -31,7 +26,6 @@ TODO 消す
  ** 削除したデータのIDが分かるようにする
  ** データを追加した場合、どこかのConnectionに追加するべきか検討する
 
-//footnote[cursor-connections][@<href>{https://relay.dev/graphql/connections.htm}]
 //footnote[input-object-mutations][@<href>{https://relay.dev/graphql/mutations.htm}]
 //footnote[client-mutation-id-is-dead][@<href>{https://github.com/facebook/relay/pull/2349}]
 
@@ -147,10 +141,207 @@ Relayの定める仕様には存在しませんが、@<code>{nodes(ids: [ID!]!):
 
 == Cursor Connections
 
-TODO
-スキーマの話
-first, after
-last, before
+Cursor Connections@<fn>{cursor-connections}はカーソルを使ってリストを順にたどるための仕様、平たくいうとページングのための仕様です。
+色々な実装方法を思いつきますが、広く使われている仕様があるのであれば、それに乗っかってしまうのが楽でよいでしょう。
+
+//footnote[cursor-connections][@<href>{https://relay.dev/graphql/connections.htm}]
+
+この仕様をざっくりいうと次のとおりです。
+
+ 1. リストを返したい場所で、直接リストにせず@<code>{Connection}サフィックスの型を用意して使う
+ 2. @<code>{first: Int!}と@<code>{after: String}を引数に設ける@<fn>{connections-args}
+ 3. Connectionはcursorを持てる@<code>{Edge}と、ページング情報をもつ@<code>{PageInfo}をもつ
+
+//footnote[connections-args][lastとbeforeもあるけどあんまり使わないし実装無理な場合が結構…]
+
+Cursor Connectionsでは、単にリストを返す代わりにConnectionサフィックスをもつ型を使います。
+ConnectionはRelayの仕様ではフィールドに@<code>{pageInfo: PageInfo!}と@<code>{edges: [XxxEdge]}を持ちます。
+@<code>{PageInfo}型はページングに関する情報を持ち、@<code>{Edge}型は@<code>{cursor: String!}@<fn>{cursor-types}と@<code>{node: Xxx}を持ちます。
+
+//footnote[cursor-types][仕様に注釈としてString以外でもいいよ！とあります。筆者の場合、DBの仕様上nullを許容しないとコストが爆裂に悪化するので@<code>{cursor: String}にして使っています]
+
+Connection、Edge、PageInfoについて、仕様にないフィールドを追加するのは自由です。
+実際に、GitHub v4 APIの場合、ConnectionにtotalCountフィールドを追加していたり、edgesの他にcursorを持たないnodesを定義していたりします。
+筆者もedgesのcursorは必要なくて、pageInfoのendCursorで十分な場合がほとんどなので、真似してnodesを定義して運用しています。
+
+では、Cursor Connectionsの実際をGitHub v4 APIを例に見てみましょう（@<list>{code/relay/cursorConnections/github-1.graphql}）。
+Repositoryのリストを返す場合、@<code>{[Repository]}を返す代わりに@<code>{RepositoryConnection}を返します。
+
+//list[code/relay/cursorConnections/github-1.graphql][Cursor Connectionsのクエリ例]{
+#@mapfile(../code/relay/cursorConnections/github-1.graphql)
+{
+  organization(login: "Google") {
+    # repositories の型は RepositoryConnection!
+    repositories(first: 2, after: "Y3Vyc29yOnYyOpHOAFi-oQ==") {
+      # pageInfo は PageInfo!
+      pageInfo {
+        # ページングの前方向にページがあるか
+        hasPreviousPage
+        # ページングの前方向へのカーソル
+        startCursor
+        # ページングの次方向にページがあるか
+        hasNextPage
+        # ページングの次方向へのカーソル
+        endCursor
+      }
+      # edges は [RepositoryEdge]
+      edges {
+        # このエッジを基点とした時のカーソル
+        cursor
+        # Repositoryのデータ本体
+        node {
+          id
+          name
+        }
+      }
+    }
+  }
+}
+#@end
+//}
+
+//list[code/relay/cursorConnections/github-1.result.json][クエリ例の実行結果]{
+#@mapfile(../code/relay/cursorConnections/github-1.result.json)
+{
+  "data": {
+    "organization": {
+      "repositories": {
+        "pageInfo": {
+          "hasPreviousPage": true,
+          "startCursor": "Y3Vyc29yOnYyOpHOAFktDA==",
+          "hasNextPage": true,
+          "endCursor": "Y3Vyc29yOnYyOpHOAFz6sA=="
+        },
+        "edges": [
+          {
+            "cursor": "Y3Vyc29yOnYyOpHOAFktDA==",
+            "node": {
+              "id": "MDEwOlJlcG9zaXRvcnk1ODQ0MjM2",
+              "name": "embed-dart-vm"
+            }
+          },
+          {
+            "cursor": "Y3Vyc29yOnYyOpHOAFz6sA==",
+            "node": {
+              "id": "MDEwOlJlcG9zaXRvcnk2MDkzNDg4",
+              "name": "module-server"
+            }
+          }
+        ]
+      }
+    }
+  }
+}
+#@end
+//}
+
+次の2件を取得したい場合、pageInfoのendCursorかedgeのcursorをafterに指定して再度クエリを実行すればOKです。
+
+この部分をスキーマに起こしてみると@<list>{code/relay/cursorConnections/mimicSchema.graphql}のようなスキーマになります。
+実際はもっと複雑ですが、Cursor Connectionsの実装を示すには十分です。
+
+//list[code/relay/cursorConnections/mimicSchema.graphql][簡略化したスキーマ]{
+#@mapfile(../code/relay/cursorConnections/mimicSchema.graphql)
+type Query {
+  repositories(
+    # 次方向ページングの時に使う
+    first: Int
+    after: String
+
+    # 前方向ページングの時に使う
+    last: Int
+    before: String
+  ): RepositoryConnection
+}
+
+type RepositoryConnection {
+  pageInfo: PageInfo
+  edges: [RepositoryEdge]
+}
+
+type PageInfo {
+  hasPreviousPage: Boolean!
+  startCursor: String
+  hasNextPage: Boolean!
+  endCursor: String
+}
+
+type RepositoryEdge {
+  cursor: String!
+  node: Repository
+}
+
+type Repository {
+  id: ID!
+  name: String!
+}
+#@end
+//}
+
+この仕様の優れたところは、だいたいの方式のDBに対応しているところです。
+RDBでも多少の工夫は必要だと思いますが実装可能ですし、KVSでも実装可能でしょう@<fn>{but-author-using-kvs}。
+カーソル方式のページングの実装方法については本書では扱わないので適当に調べてみてください。
+
+//footnote[but-author-using-kvs][といいつつ筆者は普段KVSしか使わないのであった… RDBでも脳内では実装できてるから！]
+
+この仕様で明記されていないのが、検索に使うパラメータをどうやって引数に指定するかです。
+GitHub v4 APIの場合、firstやafterと同じ箇所、つまりフィールドの引数にprivaryやらorderByやらisForkが生えています。
+技術書典Webでは、Cursor Connections以外のパラメータはinput要素にまとめてしまっています。
+@<code>{circles(first: Int, after: String, input: CirclesInput!): CircleExhibitInfoConnection!}という感じです。
+どちらのやり方がいいかは今はまだ突き詰められていません。
+複雑な管理者用画面などを実装しはじめると、クエリあたりの引数の数が爆発しない、inputにまとめる方式のほうが有利ではないかと考えているのですが、はてさて？
+
+さて、Cursor Connectionsの仕様を無視すると発生しうる問題、そしてワザと無視してもよい場合について考えてみます。
+
+GraphQLではクライアント側から自由なクエリを投げることができます。
+つまり、サーバのリソースを食い尽くすようなクエリをワザと投げることができてしまいます。
+GraphQLでセキュリティの話題が出るとき、だいたいはこの話題です。
+この問題への対策として、クエリを実行せずに危険なクエリかどうかを判定できる必要があります。
+
+これを防ぐため、クエリの複雑度（complexity）を計算する方法があります。
+クエリの負荷の多寡の大部分は、DBへの負荷によって決まります。
+つまり、何エンティティ取得する可能性があるかどうかを見積もればよい、となるわけですね。
+
+GitHub v4 APIのリソース制限@<fn>{github-resource-limitations}が、まさにその考え方です。
+@<list>{code/relay/cursorConnections/complexity.graphql}のようなクエリのコストを計算してみます。
+
+//footnote[github-resource-limitations][@<href>{https://developer.github.com/v4/guides/resource-limitations/}]
+
+//list[code/relay/cursorConnections/complexity.graphql][クエリの複雑度]{
+#@mapfile(../code/relay/cursorConnections/complexity.graphql)
+# リポジトリを20、その下のIssueを30、つまり 20+20×30 Entity最大で取得する
+{
+  viewer {
+    # first: 20 なので最大20件取得できる
+    repositories(first: 20) {
+      nodes {
+        name
+        # first: 30 なので最大30件取得できる
+        issues(first: 30) {
+          nodes {
+            title
+            bodyText
+          }
+        }
+      }
+    }
+  }
+}
+#@end
+//}
+
+GitHubのノードリミットの定義は、ログインユーザがもつリポジトリを20件取得し、さらにそれぞれのIssueを30件取得する場合、20件+20×30件の合計620ノードが取得されると事前に計算できます。
+あとは、各々のサービスで1回あたりのコストをいくつまで許容するかを設計すればよいわけです。
+ここでの重要なポイントは、事前に"何件"データを取得したいかが明確な点です。
+Cursor Connectionsの仕様に従えば、@<code>{first}もしくは@<code>{last}を明示的に指定する必要があるため、自動的にこの条件が満たされます。
+
+APIを外部に晒す必要があるシステムの場合、これらの制限を導入できるようスキーマを設計しておくに越したことはないでしょう。
+
+もちろん、常にConnectionを定義する必要は必ずしもありません。
+コスト計算を厳密にやらなければいけないのは、コストがかかる場合のみです。
+つまり、長さが必ず固定でプログラム中にハードコーディングできるようなものはコストを気にする必要はないでしょう。
+また、データベースのカラムに配列を保存できるような場合、1行取得したら必要なデータがオマケでついてくるわけです。
+この配列の構成要素がGraphQLのスカラ型にあたる場合、コストを気にする必要は生じないでしょう。
 
 == Input Object Mutations
 

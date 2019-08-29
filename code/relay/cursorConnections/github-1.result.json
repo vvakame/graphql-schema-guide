@@ -1,0 +1,30 @@
+{
+  "data": {
+    "organization": {
+      "repositories": {
+        "pageInfo": {
+          "hasPreviousPage": true,
+          "startCursor": "Y3Vyc29yOnYyOpHOAFktDA==",
+          "hasNextPage": true,
+          "endCursor": "Y3Vyc29yOnYyOpHOAFz6sA=="
+        },
+        "edges": [
+          {
+            "cursor": "Y3Vyc29yOnYyOpHOAFktDA==",
+            "node": {
+              "id": "MDEwOlJlcG9zaXRvcnk1ODQ0MjM2",
+              "name": "embed-dart-vm"
+            }
+          },
+          {
+            "cursor": "Y3Vyc29yOnYyOpHOAFz6sA==",
+            "node": {
+              "id": "MDEwOlJlcG9zaXRvcnk2MDkzNDg4",
+              "name": "module-server"
+            }
+          }
+        ]
+      }
+    }
+  }
+}

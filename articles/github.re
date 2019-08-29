@@ -26,6 +26,11 @@ TODO
 == セキュリティのためのrate limitとcomplexity
 
 TODO
+relay.re でちょっと書いたのでどうするか考える
+クライアントに優しくする必要があるか？
+厳密にコストを計算する必要があるか？
+実際に計算してみて見積もりより安かったら割引してあげるべきか？
+んなこたないよ
 
 //comment{
  * GitHub v4 APIをあがめよ
@@ -33,4 +38,5 @@ TODO
  ** unionとかの実例
  * 命名規則の話
  ** [action][module][object] とか
+ * idとかcursorとかの符号化方法
 //}

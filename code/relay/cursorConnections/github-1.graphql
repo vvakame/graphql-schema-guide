@@ -1,0 +1,28 @@
+{
+  organization(login: "Google") {
+    # repositories の型は RepositoryConnection!
+    repositories(first: 2, after: "Y3Vyc29yOnYyOpHOAFi-oQ==") {
+      # pageInfo は PageInfo!
+      pageInfo {
+        # ページングの前方向にページがあるか
+        hasPreviousPage
+        # ページングの前方向へのカーソル
+        startCursor
+        # ページングの次方向にページがあるか
+        hasNextPage
+        # ページングの次方向へのカーソル
+        endCursor
+      }
+      # edges は [RepositoryEdge]
+      edges {
+        # このエッジを基点とした時のカーソル
+        cursor
+        # Repositoryのデータ本体
+        node {
+          id
+          name
+        }
+      }
+    }
+  }
+}
