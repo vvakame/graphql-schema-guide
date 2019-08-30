@@ -14,20 +14,7 @@ Relayが求めるサーバ側（スキーマ）の仕様の狙いは次のとお
  * Connectionを通じてページングを実装するため
  * Mutationの結果を予測可能にするため
 
-これを具体的な仕様として説明してみます。
-TODO 消す
-
- * Input Object Mutations（@<code>{clientMutationId}をつけよう）@<fn>{input-object-mutations}
- ** Mutationのinputに@<code>{clientMutationId: String}をつけて、返り値にも同値をコピーする
- ** リクエストとレスポンスのひも付きがわかりやすいよ！
- ** わりと死んでる仕様感はある
- * Mutations updater（Mutationsで返すべき情報）
- ** 明確に仕様化はされていないがサーバ&クライアント協力して配慮すべき…
- ** 削除したデータのIDが分かるようにする
- ** データを追加した場合、どこかのConnectionに追加するべきか検討する
-
-//footnote[input-object-mutations][@<href>{https://relay.dev/graphql/mutations.htm}]
-//footnote[client-mutation-id-is-dead][@<href>{https://github.com/facebook/relay/pull/2349}]
+この3つと、追加で1つ、クライアント側でデータの変化の予測容易性についてこの章で解説します。
 
 == Global Object Identification
 
@@ -345,9 +332,80 @@ APIを外部に晒す必要があるシステムの場合、これらの制限�
 
 == Input Object Mutations
 
-TODO
-割と死んでる
-inputをちゃんと使う（args並べて対処しない）とか、返り値で結果直接返すんじゃなくて1つラッパーとなる型を作れとかを守るのにはちょうどいいおまじないかもね
+Input Object Mutations@<fn>{input-object-mutations}について説明します。
+端的に説明すると、Mutationの引数のinputに@<code>{clientMutationId: String}をもたせ、サーバ側では同値を返り値に混ぜて返します。
+これにより、リクエストとレスポンスの操作の紐付けを容易にします。
+
+//footnote[input-object-mutations][@<href>{https://relay.dev/graphql/mutations.htm}]
+
+…という仕様なのですが、最近のJavaScriptにはPromiseなどの非同期操作のためのAPIがあります。
+そのせいかどうかは不明ですが、この仕様が活用されているのを見たことがないです。
+実際、Relayでもモダンなバージョンでは不要だとか…？@<fn>{client-mutation-id-is-dead}
+
+//footnote[client-mutation-id-is-dead][@<href>{https://github.com/facebook/relay/pull/2349}]
+
+この仕様から得られる示唆もあるので、念の為仕様を解説していきましょう。
+GitHub v4 APIを例に、@<list>{code/relay/inputObjectMutations/addReaction.graphql}のようなMutationを投げると@<list>{code/relay/inputObjectMutations/addReaction.result.json}の結果が返ってきます。
+
+//list[code/relay/inputObjectMutations/addReaction.graphql][Mutation+clientMutationIdを投げる]{
+#@mapfile(../code/relay/inputObjectMutations/addReaction.graphql)
+mutation {
+  addReaction(
+    input: {
+      # 任意の値を渡す UUIDとか
+      clientMutationId: "foobarbuzz"
+      subjectId: "MDU6SXNzdWU0ODc0OTQzNzk="
+      content: LAUGH
+    }
+  ) {
+    # クライアントが渡した値がそのまま返ってくる
+    clientMutationId
+    reaction {
+      id
+      content
+    }
+    subject {
+      ... on Issue {
+        id
+        title
+      }
+    }
+  }
+}
+#@end
+//}
+
+//list[code/relay/inputObjectMutations/addReaction.result.json][clientMutationIdがそのまま返ってくる]{
+#@mapfile(../code/relay/inputObjectMutations/addReaction.result.json)
+{
+  "data": {
+    "addReaction": {
+      "clientMutationId": "foobarbuzz",
+      "reaction": {
+        "id": "MDg6UmVhY3Rpb240OTkzMDUyMQ==",
+        "content": "LAUGH"
+      },
+      "subject": {
+        "id": "MDU6SXNzdWU0ODc0OTQzNzk=",
+        "title": "本の実験場"
+      }
+    }
+  }
+}
+#@end
+//}
+
+このMutationは@<code>{addReaction(input: AddReactionInput!): AddReactionPayload}というシグニチャです。
+@<code>{AddReactionPayload}は@<code>{clientMutationId: String}、@<code>{reaction: Reaction}、@<code>{subject: Reactable}の3つのフィールドを持っています。
+
+ここで注目したいのは、@<code>{addReaction}の値が@<code>{AddReactionPayload}な点です。
+@<code>{Reaction}ではないのです。
+操作の結果を表す型を間に挟むことで、返り値の表現の幅を確保しています。
+これによって、@<code>{clientMutationId}や@<code>{subject}といった追加の情報を返すことができています。
+スキーマ設計の一貫性、拡張性のためにも、"もしclientMutationIdがあったら"どういう型にするべきかを考えるとよいでしょう。
+
+なお、筆者は念の為各プロジェクトで@<code>{clientMutationId}を実装しています。
+いらない気はするんですけどね。
 
 == Mutations updater
 

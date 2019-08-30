@@ -1,0 +1,23 @@
+mutation {
+  addReaction(
+    input: {
+      # 任意の値を渡す UUIDとか
+      clientMutationId: "foobarbuzz"
+      subjectId: "MDU6SXNzdWU0ODc0OTQzNzk="
+      content: LAUGH
+    }
+  ) {
+    # クライアントが渡した値がそのまま返ってくる
+    clientMutationId
+    reaction {
+      id
+      content
+    }
+    subject {
+      ... on Issue {
+        id
+        title
+      }
+    }
+  }
+}

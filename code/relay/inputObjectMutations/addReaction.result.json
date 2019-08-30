@@ -1,0 +1,15 @@
+{
+  "data": {
+    "addReaction": {
+      "clientMutationId": "foobarbuzz",
+      "reaction": {
+        "id": "MDg6UmVhY3Rpb240OTkzMDUyMQ==",
+        "content": "LAUGH"
+      },
+      "subject": {
+        "id": "MDU6SXNzdWU0ODc0OTQzNzk=",
+        "title": "本の実験場"
+      }
+    }
+  }
+}
