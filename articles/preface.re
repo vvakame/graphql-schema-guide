@@ -103,4 +103,6 @@ GraphQLのスキーマとDB上のデータをつなぎ合わせるためには�
  ** foos と fooList どっち？
  ** 技術書典とGitHubは前者 某社内ツールは後者
  ** 今んとこ前者がよい気がする List とか Connection みたいな用語が複数出てこないほうがわかりやすいので
+ * https://github.com/Shopify/graphql-design-tutorial/
+ ** "" と null が区別される とかはそれなーー って感じするな
 //}
