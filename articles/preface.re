@@ -2,7 +2,7 @@
 
 本書は筆者（@vvakame）がGraphQL@<fn>{graphql-url}を使った開発の中で得た知見を振り返り、解説するものです。
 過去にGo言語+gqlgen@<fn>{gqlgen-web}という構成で、MTC2018カンファレンスLP@<fn>{mtc2018}、技術書典Web@<fn>{tbf-web}、弊社社内ツール@<fn>{internal-tool}を作成してきました。
-ここでの経験値をここで活かしていくスタイル…！
+それらで得た知見をこの本で解説します。
 
 //footnote[graphql-url][@<href>{https://graphql.org}]
 #@# prh:disable:web
@@ -12,8 +12,15 @@
 //footnote[tbf-web][@<href>{https://techbookfest.org/}]
 //footnote[internal-tool][今のところ外部で詳細な話をしたことがない。Spanner向けサポートツール]
 
-スキーマを中心に据えたベストプラクティスを書こうと思います。
+主にスキーマを中心に据えたベストプラクティスを書こうと思います。
 なので、Go言語に限らず、そしてスキーマファースト・コードファーストに限らず、読み進められるものになる（はず）です。
+
+本書の前身として、"GraphQLサーバをGo言語で作る"@<fn>{graphql-with-go-book}と"Apolloドハマリ事件簿"@<fn>{apollo-swamped-book}があります。
+booth.pmで販売またはGitHubで全文を公開していますので、こちらもぜひ読んでみてください。
+特に、"GraphQLサーバをGo言語で作る"とは解説が重複している箇所もあります。
+
+//footnote[graphql-with-go-book][@<href>{https://vvakame.booth.pm/items/1055228}]
+//footnote[apollo-swamped-book][@<href>{https://vvakame.booth.pm/items/1321051}]
 
 GraphQLの基礎はスキーマであり、どう設計するかでクライアントがどの程度楽をできるか、サーバ側で制限をかけやすくなるかなどが決まります。
 また、運用を開始した後だとスキーマを変えるのは他のプロトコルと同程度には気を使うと思いますので最初にそれなりに正しい設計を考えておきたいものです。
@@ -23,12 +30,6 @@ GraphQLの基礎はスキーマであり、どう設計するかでクライア�
 本書ではRDBが背景にある場合についても言及しますが、実践に裏打ちされたものではないため不足がないかどうかはわかりません。
 筆者としてはGoogle Cloud DatastoreやGoogle Cloud Spannerなどの分散データベースの利用をお勧めしています。
 AWSは知らん！たぶんAuroraあたりがそうなんじゃないでしょうか一回もやったことないけど。
-
-本書の前身として、"GraphQLサーバをGo言語で作る"@<fn>{graphql-with-go-book}と"Apolloドハマリ事件簿"@<fn>{apollo-swamped-book}があります。
-booth.pmで販売またはGitHubで全文を公開していますので、こちらもぜひ読んでみてください。
-
-//footnote[graphql-with-go-book][@<href>{https://vvakame.booth.pm/items/1055228}]
-//footnote[apollo-swamped-book][@<href>{https://vvakame.booth.pm/items/1321051}]
 
 #@# TODO ○○章では○○を紹介します みたいな一覧あったほうがいいかも
 #@# TODO ↓全体的にこの章じゃなくない？
