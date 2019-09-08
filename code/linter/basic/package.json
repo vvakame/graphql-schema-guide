@@ -1,0 +1,24 @@
+{
+  "name": "custom-rule-basic",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "build": "tsc",
+    "fmt": "npm run fmt:graphql && npm run fmt:ts",
+    "fmt:graphql": "prettier --write './test/*.graphql'",
+    "fmt:ts": "prettier --write './src/*.ts'",
+    "check": "npm run check:graphql",
+    "check:graphql": "graphql-schema-linter ./test/*.graphql"
+  },
+  "author": "vvakame@gmail.com",
+  "license": "ISC",
+  "dependencies": {
+    "graphql": "^14.5.4"
+  },
+  "devDependencies": {
+    "@types/graphql": "^14.5.0",
+    "graphql-schema-linter": "^0.2.1",
+    "prettier": "^1.18.2",
+    "typescript": "^3.6.2"
+  }
+}
