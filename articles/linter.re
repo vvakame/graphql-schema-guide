@@ -67,7 +67,7 @@ graphql-schema-linter（@<href>{https://www.npmjs.com/package/graphql-schema-lin
 
 基本的にはルールを整えて、npmの@<code>{graphql}パッケージ@<fn>{npm-graphql}にASTやvisitorなどの処理を投げる、というシンプルな構成です。
 @<href>{https://graphql.org/graphql-js/validation/#validate}を経由してルールが呼び出されるので、渡された@<code>{ValidationContext}の@<code>{reportError}を呼び出してやるだけです。
-比較的シンプルな構造ですね。
+わかりやすいですね。
 
 //footnote[npm-graphql][@<href>{https://www.npmjs.com/package/graphql}]
 
