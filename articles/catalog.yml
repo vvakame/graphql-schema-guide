@@ -7,9 +7,9 @@ CHAPS:
   - database.re
   - linter.re
   - tips.re
-  - tbf-ticket.re
 
 APPENDIX:
+  - tbf-ticket.re
 
 POSTDEF:
 #   - contributors.re
