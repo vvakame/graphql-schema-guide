@@ -88,22 +88,16 @@ GraphQLサーバはresolverによってクエリを結果のJSONに変換しま�
 
 GraphQLのスキーマとDB上のデータをつなぎ合わせるためには、resolverをどう実装するかが重要になるわけです。
 
-
 //comment{
- * グラフの話
- ** グラフ構造を作らないと楽にならない
- ** resolverを使い倒す必要がある
- * 誰にGraphQLをオススメするか？という話
- * Introspection Queryの話
- * Union types をクライアント側でうまくハンドリングする話難しそう
- ** サーバ側でこうすると辛いよ〜みたいな話…する？（できなさそう）
  * https://tech.mercari.com/entry/2018/10/24/111227 あたり読み返す？
  * https://github.com/vvakame/graphql-with-go-book に何書いたかも忘れた
  * https://altair.sirmuel.design/
- * 命名規則の話
- ** foos と fooList どっち？
- ** 技術書典とGitHubは前者 某社内ツールは後者
- ** 今んとこ前者がよい気がする List とか Connection みたいな用語が複数出てこないほうがわかりやすいので
  * https://github.com/Shopify/graphql-design-tutorial/
  ** "" と null が区別される とかはそれなーー って感じするな
+ * GraphQLの操作のコピペビリティの話
+ ** MutationだろうとQueryだろうとコピペして誰かに伝えることができる
+ ** REST APIだとエンドポイントとデータ・フォーマットとetc... を伝える必要があり、改変も難しい
+ ** Issueにログ取るもよし、Slackに貼ってChatOps的ご利益を得るもよし…
+ * postmanの話？
+ ** https://twitter.com/vvakame/status/1153654008952659969
 //}

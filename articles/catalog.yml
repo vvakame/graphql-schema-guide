@@ -5,8 +5,8 @@ CHAPS:
   - github.re
   - relay.re
   - database.re
-  - tips.re
   - linter.re
+  - tips.re
   - tbf-ticket.re
 
 APPENDIX:

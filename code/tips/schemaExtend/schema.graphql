@@ -1,0 +1,19 @@
+type Query {
+  node(id: ID!): Node
+}
+
+type Mutation {
+  noop(input: NoopInput): NoopPayload
+}
+
+interface Node {
+  id: ID!
+}
+
+input NoopInput {
+  clientMutationId: String
+}
+
+type NoopPayload {
+  clientMutationId: String
+}

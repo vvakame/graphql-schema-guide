@@ -1,0 +1,23 @@
+extend type Query {
+  events(first: Int, after: String): [Event!]! # Relay仕様は紙面の都合で無視
+}
+
+extend type Mutation {
+  staffCreateEvent(input: StaffCreateEventInput!): EventPayload
+  # staffUpdateEvent ... などが続くはずだが省略！
+}
+
+type Event implements Node {
+  id: ID!
+  name: String!
+}
+
+input StaffCreateEventInput {
+  clientMutationId: String
+  # 紙面を使うので以下省略！
+}
+
+type EventPayload {
+  clientMutationId: String
+  event: Event
+}
