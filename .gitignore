@@ -1,5 +1,7 @@
 .DS_Store
 
+*.key
+
 node_modules/
 Gemfile.lock
 *.pdf
