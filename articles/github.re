@@ -3,6 +3,7 @@
 この章では、GitHubがどのような工夫を行っているかを解説していきます。
 本書ではGraphiQLなどPlaygroundの使い方はいちいち解説しません。
 が、Document Explorer（@<img>{document-explorer}）片手にみなさんも色々と探検してみてください。
+#@# vv: が、 → 余計なのでトルでいいかな…
 
 //image[document-explorer][Document Explorer][scale=0.4]{
 //}
