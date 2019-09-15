@@ -9,16 +9,16 @@ Relay@<fn>{relay}はFacebookが作成しているReact+GraphQLでフロントエ
 @<chapref>{github}で解説しているように、我々が見習うべきGitHubもRelayの追加仕様をほぼ踏襲しています。
 
 Relayが求めるサーバ側（スキーマ）の仕様の狙いは次のとおりです。
+これらについて、この章で解説していきます。
 
  * オブジェクトを再取得するため
  * Connectionを通じてページングを実装するため
  * Mutationの結果を予測可能にするため
-
-この3つと、追加で1つ、クライアント側でデータの変化の予測容易性についてこの章で解説します。
+ * クライアント側のもつキャッシュを適切に更新するため
 
 == Global Object Identification
 
-Global Object Identification@<fn>{object-identification}は全データをIDにより一意に特定可能にし、再取得を自動的に可能にする仕様です。
+Global Object Identification@<fn>{object-identification}は全データをIDにより一意に特定可能にし、クライアントによる自動的なデータの再取得を可能にする仕様です。
 
 //footnote[object-identification][@<href>{https://relay.dev/graphql/objectidentification.htm}]
 
@@ -52,15 +52,15 @@ IDの値を単に@<code>{"9999999999"}にしてしまうと、どのテーブル
 
 //footnote[kind-not-table][Datastoreなので本当はKind（カインド）なんですがわかりやすいようにテーブルと言いますね]
 
-これは結構厄介な問題で、マイクロサービス構成を取り背後に複数のサーバAPIがある場合、どのサービスのどのテーブルのどのIDのデータかをもIDに含めなければシステム全体で一意に特定できないでしょう。
+これは結構厄介な問題で、マイクロサービス構成を取り背後に複数のサーバAPIがある場合、どのサービスのどのテーブルのどのIDのデータかをIDに含めなければシステム全体で一意になりません。
 
 GitHub v4 API@<fn>{github-explorer}を例に見てみましょう。
 試しに、GoogleのorganizationのIDを見てみます（@<list>{code/relay/globalObjectIdentification/github-1.graphql}、@<list>{code/relay/globalObjectIdentification/github-1-result.json}）。
 みると、@<code>{"MDEyOk9yZ2FuaXphdGlvbjEzNDIwMDQ="}という値ですね。
 見るからにbase64っぽいので、デコードしてみると@<code>{012:Organization1342004}が得られます。
-Organizationはデータ種別、テーブル名とおそらくイコールでしょう。
-1342004はデータベースIDと一致しているのでデータのIDでしょう。
-先頭の012の部分は不明ですが、おそらくIDの書式バージョンを表しているのではないかと筆者は考えています。
+@<code>{Organization}はデータ種別、テーブル名とおそらくイコールでしょう。
+@<code>{1342004}はデータベースIDと一致しているのでデータのIDでしょう。
+先頭の@<code>{012}の部分は不明ですが、おそらくIDの書式バージョンを表しているのではないかと筆者は考えています。
 
 //footnote[github-explorer][@<href>{https://developer.github.com/v4/explorer/}]
 
@@ -91,12 +91,12 @@ Organizationはデータ種別、テーブル名とおそらくイコールで�
 //}
 
 将来的な仕様変更に対する互換性（過去に生成したIDを内部でハンドリングできるようにするか）は頭の痛い問題です。
-技術書典Webでは人間が見て意味がわかりやすく、クライアント側で合成するのが容易です。
+技術書典Webの方式は人間が見て意味がわかりやすく、クライアント側で合成するのが容易です。
 一方、将来的にIDの構造に破壊的変更を加えようとした時、困りそうだというのは予想がつきます。
 GitHubのやり方は人間には若干不親切ですが、将来的な破壊的変更を内部で吸収する余地があります。
 
 グローバルなIDがどうやって成り立っているかを見たので、次はQueryのnodeフィールド側です。
-GitHub v4 APIの例を引き続き使って説明します。
+引き続き、GitHub v4 APIの例を使って説明します。
 nodeの引数として、さきほどのIDを指定すると任意のデータが取れるように設計されています（@<list>{code/relay/globalObjectIdentification/github-2.graphql}）。
 
 //list[code/relay/globalObjectIdentification/github-2.graphql][nodeを使って同じデータを取得する]{
@@ -117,14 +117,14 @@ nodeの引数として、さきほどのIDを指定すると任意のデータ�
 取れるデータの型はNodeインタフェースの形なので、インラインフラグメントで実際の型を指定してやる必要があります。
 得られるデータは先の@<list>{code/relay/globalObjectIdentification/github-1-result.json}とまったく同一です。
 
-この機能が実際に必要なのか？というと筆者がApolloユーザであることもあり、実用上役に立っているのを見かけたことはありません。
+データを自動的に再取得できる機能は本当に必要なのか？というと筆者がApolloユーザであることもあり、実用上役に立っているのを見かけたことはありません。
 しかしながら、この機能は開発時にかなり役に立ちます。
-得られたデータを元に同じデータが別の形でほしい場合、どのフィールドを使えば欲しいものが手に入るか？を考えるのは大変です。
+IDを知っているデータが欲しいとき、どのフィールドを使えば欲しいものが手に入るか？を調べるのは大変です。
 もしかしたら、その手段がスキーマ上に存在していないことすらあるでしょう。
 細かいことを気にしたり、不便さを感じるくらいであれば、ある程度定型的な実装を育てておけば需要を満たしてくれるnodeフィールドはリーズナブルな選択です。
 
 Relayの定める仕様には存在しませんが、@<code>{nodes(ids: [ID!]!): [Node]!}というフィールドもついでに定義するとよいでしょう。
-これがあれば、@<code>{node(id: ID!): Node}も実装を流用して組むことができるでしょう。
+このフィールドは@<code>{node(id: ID!): Node}と実装を共通化できるでしょう。
 
 == Cursor Connections
 
@@ -135,7 +135,7 @@ Cursor Connections@<fn>{cursor-connections}はカーソルを使ってリスト�
 
 この仕様をざっくりいうと次のとおりです。
 
- 1. リストを返したい場所で、直接リストにせず@<code>{Connection}サフィックスの型を用意して使う
+ 1. リスト型のフィールドの代わりに、@<code>{Connection}サフィックスの型を作る
  2. @<code>{first: Int!}と@<code>{after: String}を引数に設ける@<fn>{connections-args}
  3. Connectionはcursorを持てる@<code>{Edge}と、ページング情報をもつ@<code>{PageInfo}をもつ
 
@@ -145,7 +145,7 @@ Cursor Connectionsでは、単にリストを返す代わりにConnectionサフ�
 ConnectionはRelayの仕様ではフィールドに@<code>{pageInfo: PageInfo!}と@<code>{edges: [XxxEdge]}を持ちます。
 @<code>{PageInfo}型はページングに関する情報を持ち、@<code>{Edge}型は@<code>{cursor: String!}@<fn>{cursor-types}と@<code>{node: Xxx}を持ちます。
 
-//footnote[cursor-types][仕様に注釈としてString以外でもいいよ！とあります。筆者の場合、DBの仕様上nullを許容しないとコストが爆裂に悪化するので@<code>{cursor: String}にして使っています]
+//footnote[cursor-types][仕様に注釈としてString以外でもいいよ！とあります。筆者の場合、DBの仕様上nullを許容しないと処理コストが爆裂に悪化するので@<code>{cursor: String}にして使っています]
 
 Connection、Edge、PageInfoについて、仕様にないフィールドを追加するのは自由です。
 実際に、GitHub v4 APIの場合、ConnectionにtotalCountフィールドを追加していたり、edgesの他にcursorを持たないnodesを定義していたりします。
@@ -265,8 +265,8 @@ type Repository {
 #@end
 //}
 
-この仕様の優れたところは、だいたいの方式のDBに対応しているところです。
-RDBでも多少の工夫は必要だと思いますが実装可能ですし、KVSでも実装可能でしょう@<fn>{but-author-using-kvs}。
+この仕様の優れたところはおおよそのDBで（少なくとも次へ方向は）実装可能なところです。
+KVSでも実装可能でしょうし、RDBでも多少の工夫は必要だと思いますが実装可能でしょう@<fn>{but-author-using-kvs}。
 カーソル方式のページングの実装方法については本書では扱わないので適当に調べてみてください。
 
 //footnote[but-author-using-kvs][といいつつ筆者は普段KVSしか使わないのであった… RDBでも脳内では実装できてるから！]
@@ -276,9 +276,9 @@ GitHub v4 APIの場合、firstやafterと同じ箇所、つまりフィールド
 技術書典Webでは、Cursor Connections以外のパラメータはinput要素にまとめてしまっています。
 @<code>{circles(first: Int, after: String, input: CirclesInput!): CircleExhibitInfoConnection!}という感じです。
 どちらのやり方がいいかは今はまだ突き詰められていません。
-複雑な管理者用画面などを実装しはじめると、クエリあたりの引数の数が爆発しない、inputにまとめる方式のほうが有利ではないかと考えているのですが、はてさて？
+複雑な管理者用画面などを実装しはじめると、引数の数が増えても破綻しにくいinputにまとめる方式のほうが有利ではないかと考えているのですが、はてさて？
 
-さて、Cursor Connectionsの仕様を無視すると発生しうる問題、そしてワザと無視してもよい場合について考えてみます。
+さて、Cursor Connectionsの仕様を無視すると発生しうる問題、そしてワザと無視してもよい場合について考えます。
 
 GraphQLではクライアント側から自由なクエリを投げることができます。
 つまり、サーバのリソースを食い尽くすようなクエリをワザと投げることができてしまいます。
@@ -318,17 +318,17 @@ GitHub v4 APIのリソース制限@<fn>{github-resource-limitations}が、まさ
 //}
 
 GitHubのノードリミットの定義は、ログインユーザがもつリポジトリを20件取得し、さらにそれぞれのIssueを30件取得する場合、20件+20×30件の合計620ノードが取得されると事前に計算できます。
-あとは、各々のサービスで1回あたりのコストをいくつまで許容するかを設計すればよいわけです。
+あとは、各々のサービスで1回あたりのコストをいくらまで許容するかを設計すればよいわけです。
 ここでの重要なポイントは、事前に"何件"データを取得したいかが明確な点です。
 Cursor Connectionsの仕様に従えば、@<code>{first}もしくは@<code>{last}を明示的に指定する必要があるため、自動的にこの条件が満たされます。
 
-APIを外部に晒す必要があるシステムの場合、これらの制限を導入できるようスキーマを設計しておくに越したことはないでしょう。
+APIを外部に晒す必要があるシステムの場合、これらの制限を導入できるようスキーマを設計しておきましょう。
 
-もちろん、常にConnectionを定義する必要は必ずしもありません。
+もちろん、常にConnectionが必要なわけではありません。
 コスト計算を厳密にやらなければいけないのは、コストがかかる場合のみです。
-つまり、長さが必ず固定でプログラム中にハードコーディングできるようなものはコストを気にする必要はないでしょう。
-また、データベースのカラムに配列を保存できるような場合、1行取得したら必要なデータがオマケでついてくるわけです。
-この配列の構成要素がGraphQLのスカラ型にあたる場合、コストを気にする必要は生じないでしょう。
+
+リストの要素がGraphQLのスカラ型であれば、それ以上他の型に展開されることはありません。
+あとは、そのリスト自体がプログラム中にハードコーディングできる場合、データベースのカラムに配列が保存できる場合はデータの取得コストも気にする必要はないでしょう。
 
 == Input Object Mutations
 
@@ -338,8 +338,8 @@ Input Object Mutations@<fn>{input-object-mutations}について説明します�
 
 //footnote[input-object-mutations][@<href>{https://relay.dev/graphql/mutations.htm}]
 
-…という仕様なのですが、最近のJavaScriptにはPromiseなどの非同期操作のためのAPIがあります。
-そのせいかどうかは不明ですが、この仕様が活用されているのを見たことがないです。
+…という仕様なのですが、最近のJavaScriptにはPromiseなどの非同期操作のためのAPIがあり、処理に連続性があります。
+そのせいか、この仕様が活用されているのを見たことがないです。
 実際、Relayでもモダンなバージョンでは不要だとか…？@<fn>{client-mutation-id-is-dead}
 
 //footnote[client-mutation-id-is-dead][@<href>{https://github.com/facebook/relay/pull/2349}]
@@ -405,7 +405,7 @@ mutation {
 スキーマ設計の一貫性、拡張性のためにも、"もしclientMutationIdがあったら"どういう型にするべきかを考えるとよいでしょう。
 
 なお、筆者は念の為各プロジェクトで@<code>{clientMutationId}を実装しています。
-いらない気はするんですけどね。
+サボらないための命綱のようなものです。
 
 == Mutations updater
 
@@ -428,7 +428,7 @@ Mutationによるデータの新規作成・更新はレスポンスを見れば
 
 データを削除する場合、一般的なユースケースでは削除したいIDをリクエストに含めるでしょう。
 そのためクライアント側はドメイン知識があれば、処理が成功した時点でどのIDをキャッシュから消せばよいか分かります。
-しかしながら、複数のデータを消したり、削除対象のIDがサーバ側で決まるパターンもあるでしょう。
+しかしながら複数のデータを消したパターンや、削除対象のIDがサーバ側で決まるパターンもあるでしょう。
 このようなパターンと一貫性のある設計とするため、レスポンスには必ず削除したIDを含めるようにします。
 
 残念ながら、削除したIDであることを示すコンセンサスの取れたフィールド名はありません。
@@ -438,5 +438,6 @@ GitHub v4 APIは前者を選んでいます。
 Connectionへの追加、削除についてはドメイン知識が必要になるため、ライブラリに全自動的に処理させるのは難しいでしょう。
 代わりに、今行ったMutationがどういう処理で、どういう結果が返ってきて、どうやったら既存のConnectionに追加、削除できるかを人間は理解できるはずです。
 人間が頑張りましょう。
-そのためには、Connectionを取得する時に利用したFragmentをレスポンスに対して再利用できるような構造でなくてはいけません。
+
+キャッシュに適切なデータの追加を行うためには、Connectionの利用箇所で使っているFragmentをレスポンスに対して再利用できるような構造でなくてはいけません。
 REST APIだとつい空のJSONを返してしまったりする場合がありますが、GraphQLではちゃんと操作した該当データを返却するようにしましょう。

@@ -1,6 +1,6 @@
 = graphql-schema-linter のルールの作り方
 
-graphql-schema-linter（@<href>{https://www.npmjs.com/package/graphql-schema-linter}）はGraphQLスキーマの定義をチェックしてくれるlintツールです。
+graphql-schema-linter@<fn>{graphql-schema-linter}はGraphQLスキーマの定義をチェックしてくれるlintツールです。
 筆者の知る限り、GraphQLのスキーマに対して何らかの警告を行ってくれる著名なツールは他に存在しません。
 もし知っている人がいればぜひ筆者（@vvakame）までお報せください。
 
@@ -8,6 +8,7 @@ graphql-schema-linter（@<href>{https://www.npmjs.com/package/graphql-schema-lin
 任意のスキーマへの警告をdisableにできない@<fn>{issue-disable-rules}というもので、有用な警告でも一部で無視したい場合、全体をOFFにしなければいけません。
 これはかなり不便です。
 
+//footnote[graphql-schema-linter][@<href>{https://www.npmjs.com/package/graphql-schema-linter}]
 //footnote[issue-disable-rules][@<href>{https://github.com/cjoudrey/graphql-schema-linter/issues/18}]
 
 不便なのであればパッチでも送って自分で直せよ、という話なんですが忙しさを言い訳にしてやってませんすみません…。
@@ -23,8 +24,8 @@ graphql-schema-linter（@<href>{https://www.npmjs.com/package/graphql-schema-lin
 
 コードファーストでGraphQLサーバを構成する場合、Introspection Queryを使ってエンドポイントからスキーマを引き出す形式になるでしょう。
 この場合の問題点として、コメントやdirectiveに関する情報が欠落してしまいます。
-もちろん、ドキュメントの一部として書いたdescriptionは得られるでしょうし、directiveにどういったものの一覧が得られるかはわかります。
-しかし、クライアントに公開されない本当の意味でのコメントは出力できないですし、directiveがどこについているかの情報も欠落します@<fn>{directive-and-introspection}。
+もちろん、ドキュメントの一部として書いたdescriptionや、directiveの一覧は得られます。
+しかし、クライアントに公開されない本当の意味でのコメントは出力できないですし、directiveがどこ付与されているかの情報も欠落します@<fn>{directive-and-introspection}。
 
 //footnote[directive-and-introspection][@<href>{https://github.com/graphql/graphql-spec/issues/300}]
 
@@ -153,11 +154,11 @@ $ npx graphql-schema-linter ./test/*.graphql
 
 このように、カスタムルールを定義すること自体は非常に簡単です。
 まずは、graphql-schema-linterのリポジトリを見て、各ルールの実装を見てみるとよいでしょう。
-さらに詳細な挙動を知りたい場合は、"node --inspect-brk"などでググってデバッガの使い方を学習すると、処理を追いやすく理解しやすいでしょう。
+さらに詳細な挙動を知りたい場合は、"node --inspect-brk"などでググってデバッガの使い方を学習すると、処理を追いやすく理解しやすいです。
 ChromeのDevToolsを使うやり方が王道かつ罠が少ないのでお勧めです。
 
 Node.jsに慣れていない人には若干酷な話ですが、GraphQL界隈のツールの標準はどうしてもNode.jsに偏っています。
-なので、簡単なJavaScriptやTypeScriptの読み（できたら書き）と、デバッガの使い方は覚える価値があると思います。
+なので、簡単なJavaScriptやTypeScriptの読み（できたら書き）と、デバッガの使い方は覚える価値があります。
 
 == 広げようカスタムルールの輪
 
@@ -175,7 +176,7 @@ Node.jsに慣れていない人には若干酷な話ですが、GraphQL界隈の
 
 ==== @<code>{field-name-matches-input-type}
 
-筆者は現在、Relay系の仕様で要求されない場合は、引数を@<code>{input}という名前にし、input objectを定義することにしています。
+筆者はRelay系の仕様で要求されない限り、引数を@<code>{input}という名前にしてinput objectを定義しています。
 ここで、input objectの命名規則を フィールド名+"Input" または 元オブジェクト名+フィールド名+"Input" というルールにすることにしました。
 
 たとえば、@<code>{circles}というフィールドがあり、そこに引数を定義する場合は@<code>{input: CirclesInput}のような名前にするわけです。
@@ -192,11 +193,11 @@ input objectの命名規則は必ず末尾に "Input" で終わらなければ�
 これを自動的に決定するため、input objectにNonNullの値が1つでもあれば、自動的にinputもNonNullに、さもなくば省略可能であることを強制します。
 
 このルールはかなり便利で、合理的です。
-省略できない引数があるかないかと、フィールド引数がNonNullか否かは基本的には一致します。
+inputの省略可不可と、input objectの値がNonNullかどうかは基本的には一致します。
 
-気合の入ってないコーディングをしているとこのあたりの配慮が意識から漏れる場合があります。
+精神がゆるふわの状態でコーディングをしていると、このあたりの配慮が意識から漏れる場合があります。
 そして、クエリを書く時に@<code>{input: {\}}などと書かされストレスを溜めてしまうわけです。
-このストレスを避けるため、ルールとして自動的に検出させます。
+このストレスを避けるためのルールです。
 
 ==== @<code>{list-must-be-relay-connection}
 
@@ -228,7 +229,7 @@ GitHubと同じく、複数形の@<code>{circles}に統一していきたいと�
 
 ==== @<code>{mutation-delete-id}
 
-Mutationで名前に@<code>{delete}または@<code>{remove}を含む場合、返り値に@<code>{deletedXxxID}または@<code>{removedXxxID}という名前のフィールドがなければいけない。
+Mutationで名前に@<code>{delete}または@<code>{remove}を含む場合、返り値に@<code>{deletedXxxID}または@<code>{removedXxxID}という名前のフィールドがなければいけないというルールです。
 これはRelayのMutations updaterに配慮したルールで、キャッシュから該当データを消せるだけの情報をかならず返させる意図があります。
 
 ==== @<code>{mutation-field-naming}

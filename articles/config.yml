@@ -22,7 +22,7 @@ bookname: graphql-schema-guide
 language: ja
 
 # 書名
-booktitle: {name: "GraphQLスキーマ 設計ガイド", file-as: "graphqlスキーマセッケイガイド"}
+booktitle: {name: "GraphQLスキーマ設計ガイド", file-as: "graphqlスキーマセッケイガイド"}
 
 # 著者名。「, 」で区切って複数指定できる
 aut: [{name: "ひかる黄金わかめ帝国編", file-as: "ヒカルオウゴンワカメテイコクヘン"}]

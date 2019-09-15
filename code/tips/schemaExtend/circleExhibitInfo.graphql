@@ -3,8 +3,8 @@ type CircleExhibitInfo {
   name: String
 }
 
-# DBスキーマ上、EventはサークルのIDを持っているわけではない
-# データとしての主体はCircleExhibitInfo側なので、Eventをここで拡張する
+# DBスキーマ上、CircleExhibitInfoがeventIDを持つ
+# データとしての主体はCircleExhibitInfo側なので、Eventをこのファイルで拡張する
 extend type Event {
   # Relay仕様は紙面の都合で無視
   circles(first: Int, after: String): [CircleExhibitInfo!]!
