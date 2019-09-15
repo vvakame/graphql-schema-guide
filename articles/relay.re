@@ -407,6 +407,9 @@ mutation {
 なお、筆者は念の為各プロジェクトで@<code>{clientMutationId}を実装しています。
 サボらないための命綱のようなものです。
 
+#@# wawoon: clientMutationIdは自分は実装していないですが、mutationのinputにidempotencyKey（冪等キー）という名前で二重送信防止用のuuidをもたせています。
+#@# wawoon: clientMutationIdをidempotency keyとして再利用する例はよく見られるので、mutationの冪等性についても追記していいかなと思いました。
+
 == Mutations updater
 
 これについては明確に仕様化されているわけではありません。
