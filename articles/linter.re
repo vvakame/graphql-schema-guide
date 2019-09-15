@@ -23,6 +23,7 @@ graphql-schema-linter@<fn>{graphql-schema-linter}はGraphQLスキーマの定義
 組織的な側面からの良し悪しはここでは論じませんが、GraphQLの仕様的な側面からなぜ不利なのかを簡単に解説します。
 
 コードファーストでGraphQLサーバを構成する場合、Introspection Queryを使ってエンドポイントからスキーマを引き出す形式になるでしょう。
+#@# wawoon: この場合SDLファイルやschema.json（？）をローカルにdumpして、その後にlintにかけることになると思うので、そのあたりの処理を具体的に書いたほう良さそうです。
 この場合の問題点として、コメントやdirectiveに関する情報が欠落してしまいます。
 もちろん、ドキュメントの一部として書いたdescriptionや、directiveの一覧は得られます。
 しかし、クライアントに公開されない本当の意味でのコメントは出力できないですし、directiveがどこ付与されているかの情報も欠落します@<fn>{directive-and-introspection}。
