@@ -407,6 +407,9 @@ mutation {
 なお、筆者は念の為各プロジェクトで@<code>{clientMutationId}を実装しています。
 サボらないための命綱のようなものです。
 
+#@# wawoon: clientMutationIdは自分は実装していないですが、mutationのinputにidempotencyKey（冪等キー）という名前で二重送信防止用のuuidをもたせています。
+#@# wawoon: clientMutationIdをidempotency keyとして再利用する例はよく見られるので、mutationの冪等性についても追記していいかなと思いました。
+
 == Mutations updater
 
 これについては明確に仕様化されているわけではありません。
@@ -422,7 +425,7 @@ mutation {
 RelayでUpdaterで指定できる操作の設定は@<code>{NODE_DELETE}、@<code>{RANGE_ADD}、@<code>{RANGE_DELETE}の3種です。
 それぞれ、データの削除、Connectionへの追加、Connectionからの削除に対応します。
 
-Mutationによるデータの新規作成・更新はレスポンスを見れば自動的にキャッシュ（≒画面）に反映できます。
+Mutationによるデータの新規作成・更新はレスポンスを見れば自動的にキャッシュ（≒画面）に反映できます。#@# wawoon:（≒画面）のニアリイコールが機種依存文字みたいで, macおよびubuntuで文字化けしていました
 一方、先の3種の操作はレスポンスを見ただけではキャッシュの状態を最適な状態に保つことはできません。
 それぞれ、どう対応するべきかを見ていきます。
 
