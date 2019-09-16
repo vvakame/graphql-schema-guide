@@ -275,6 +275,7 @@ KVSでも実装可能でしょうし、RDBでも多少の工夫は必要だと�
 GitHub v4 APIの場合、firstやafterと同じ箇所、つまりフィールドの引数にprivaryやらorderByやらisForkが生えています。
 技術書典Webでは、Cursor Connections以外のパラメータはinput要素にまとめてしまっています。
 @<code>{circles(first: Int, after: String, input: CirclesInput!): CircleExhibitInfoConnection!}という感じです。
+#@# sonatard: inputが突然出てきたので何者！？と思ってしまいました。他のパラメーターまとめる専用の型を独自に作ったとわかるとすんなり入ってくると思いました。
 どちらのやり方がいいかは今はまだ突き詰められていません。
 複雑な管理者用画面などを実装しはじめると、引数の数が増えても破綻しにくいinputにまとめる方式のほうが有利ではないかと考えているのですが、はてさて？
 
