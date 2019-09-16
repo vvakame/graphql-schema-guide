@@ -30,6 +30,7 @@ Relayがどのような仕様を定めているかは@<chapref>{relay}で解説�
 
 IDの形式を人間が見て分かるものにするか、それとも何らかの符号化をして隠すか。
 技術書典Webでは@<code>{"Event:tbf07"}のような、人が見て分かる（そしてプログラム上で簡単に合成できる）ルールを採用しています。
+#@# sonatard:「合成できる」は、IDをクライアントサイドで生成できるという意味であってますか？
 一方、GitHubでは@<code>{"MDEyOk9yZ2FuaXphdGlvbjEzNDIwMDQ="}のような形式です。
 
 符号化することにより、次のような恩恵があると考えられます。
@@ -103,7 +104,8 @@ GraphQLにはinterfaceやunion typesといった概念があり、GitHub v4 API�
 interfaceは何らかの共通点がある要素を抽象化したものです。
 多くのプログラミング言語にあるinterfaceとだいたい同じものです。
 union typesはinterfaceと似た特徴がありますが、共通するフィールドを持たないため、各型毎のフィールドの参照にはfragmentの利用が必須です。
-
+#@# sonatard:「共通するフィールドを持たない」のイメージが難しいと思いました。色々な型を返せるの方がわかりやすい？
+ 
 たとえば、@<code>{User}型に着目してみます。
 
 実装しているinterfaceは@<code>{Node}に始まり、@<code>{Actor}、@<code>{RegistryPackageOwner}、@<code>{RegistryPackageSearch}、@<code>{ProjectOwner}、@<code>{RepositoryOwner}、@<code>{UniformResourceLocatable}、@<code>{ProfileOwner}、@<code>{Sponsorable}があります。
@@ -121,6 +123,7 @@ URLの構造に注目してみます。
 @<href>{https://github.com/vvakame/metago}の場合、@<code>{vvakame}部分は@<code>{User}型の値です。
 一方、@<code>{https://github.com/google/wire}の@<code>{google}部分は@<code>{Organization}型の値です。
 ここが統一されていないのは人間にとってのわかりやすさのためでしょうし、歴史的経緯の面もあると思います。
+#@# sonatard:帰ってくるレスポンスが具体的に書いてあるとまったく違う型を返せるということがわかりやすいかなと思いました
 
 リポジトリの情報を取得するQueryに着目すると@<code>{repository(owner: "google", name: "wire")}という引数になります。
 ここでは、ownerの型は区別されませんし、GraphQL的な意味でのID@<fn>{google-id}を渡すこともできません。
@@ -153,6 +156,7 @@ GraphQLにもセキュリティの問題があります。
 
 外部にAPIを公開する場合、この2種類の考え方を真似する必要があります。
 もし、公式なクライアントしか存在せず、それ以外のリクエストを考慮しなくてよい場合でも、Node limitは設けたほうがよいでしょう。
+#@# sonatard: 複雑度の計算の実装は自分でしなければいけないということがわかると読みやすいかと思いました
 
 具体的な対処として、クエリを実行する前にそのクエリがどのくらいのデータを要求しているかを見積もります。
 この複雑度を見積もれるようにするためには、スキーマの構造が重要です。
