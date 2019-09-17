@@ -18,6 +18,7 @@ GitHubのAPIはさすが数多の開発者が利用しているサービスだ�
 
 == Relayへの準拠
 
+#@# gfx: なんでいちクライアントライブラリの話が急にくるのか混乱のもとなのでもっと説明がほしい。クライアントライブラリのRelayが定めるGraphQL API仕様のこともRelayと呼ぶよ！この本でRelayといったら次からは「Relayが定めるGraphQL API仕様」のことだよ！とか書いたほうがいいと思う。（昔は "Relay Server Specification" という名前だったけど今は "GraphQL Server Specification" と呼ばれていて言及しにくい https://relay.dev/docs/en/graphql-server-specification ）
 GitHub v4 APIはFacebookが開発するJS+React向けクライアントライブラリである"Relay"の定める仕様を踏襲しています。
 GitHub v4 APIを丹念に調べることで、Relayの仕様をどのように組み込み、またそれを踏襲した上で拡張するかを学ぶことができます。
 GraphQLスキーマは自由ですが、すべてを自分で考えて試行錯誤するよりも、既存の教えから学ぶのが楽です。
@@ -41,6 +42,7 @@ IDの形式を人間が見て分かるものにするか、それとも何らか
 
 突き詰めると、DB上のIDをサーバ上でしか復号できないように暗号化して露出させる、というのもありえます。
 しかし、実際には既存のREST APIやURL設計との折り合いをつけるため、クライアント側でIDを合成可能にしておくほうが圧倒的に楽です。
+#@# gfx: KibelaではGitHubを参考にIDを設計して、クライアントでは合成しないようにした。でもいろいろ面倒だったな…。最終的にはIDからリソースを得るフィールドとは別に "noteFromPath(path: String!)" みたいな「パスを渡すとリソースを得る」みたいなフィールドを増やすことにした。ただまあ、public web api だからいま考え直してもこれにするかなと思う。とはいえ内部でしか使わないAPIならクライアントで合成できるようなフォーマットにしてもいいと思う。
 
 その意味では、GitHub v4 APIのIDも、見るからにbase64なのでクライアント側で合成可能な形式であると考えられます。
 
@@ -105,7 +107,7 @@ interfaceは何らかの共通点がある要素を抽象化したものです�
 多くのプログラミング言語にあるinterfaceとだいたい同じものです。
 union typesはinterfaceと似た特徴がありますが、共通するフィールドを持たないため、各型毎のフィールドの参照にはfragmentの利用が必須です。
 #@# sonatard:「共通するフィールドを持たない」のイメージが難しいと思いました。色々な型を返せるの方がわかりやすい？
- 
+
 たとえば、@<code>{User}型に着目してみます。
 
 実装しているinterfaceは@<code>{Node}に始まり、@<code>{Actor}、@<code>{RegistryPackageOwner}、@<code>{RegistryPackageSearch}、@<code>{ProjectOwner}、@<code>{RepositoryOwner}、@<code>{UniformResourceLocatable}、@<code>{ProfileOwner}、@<code>{Sponsorable}があります。
@@ -198,6 +200,7 @@ GraphQLにもセキュリティの問題があります。
 
 許すコストをどのように設定するか…というのは難しい問題です。
 まずは画面上、もっとも複雑であろうもののクエリで試算&妥当か検討してみて、そこから導出するのがよいのではないかと考えています。
+#@# gfx: Kibelaでは内部APIは無制限に使えて公開APIに厳密にコスト/バジェットを設定するというダブスタな設計にしてしまった。しょうがないのじゃよ…。ただ内部といえどもAPIを叩くのが別チームならちゃんとやったほうがいい。
 
 == Schema Changes
 
