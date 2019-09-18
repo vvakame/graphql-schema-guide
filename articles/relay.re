@@ -145,6 +145,7 @@ Cursor Connectionsでは、単にリストを返す代わりにConnectionサフ�
 ConnectionはRelayの仕様ではフィールドに@<code>{pageInfo: PageInfo!}と@<code>{edges: [XxxEdge]}を持ちます。
 @<code>{PageInfo}型はページングに関する情報を持ち、@<code>{Edge}型は@<code>{cursor: String!}@<fn>{cursor-types}と@<code>{node: Xxx}を持ちます。
 
+#@# zoncoen: 細かいんですが "String!" 以外でもいいよ！ですかね？
 //footnote[cursor-types][仕様に注釈としてString以外でもいいよ！とあります。筆者の場合、DBの仕様上nullを許容しないと処理コストが爆裂に悪化するので@<code>{cursor: String}にして使っています]
 
 Connection、Edge、PageInfoについて、仕様にないフィールドを追加するのは自由です。
@@ -427,6 +428,7 @@ mutation {
 RelayでUpdaterで指定できる操作の設定は@<code>{NODE_DELETE}、@<code>{RANGE_ADD}、@<code>{RANGE_DELETE}の3種です。
 それぞれ、データの削除、Connectionへの追加、Connectionからの削除に対応します。
 
+#@# zoncoen: wawoon さんのコメントが生成物にふくまれてしまっていそう（別の行になってないからコメントになっていない）あとコメントの指摘はそうでpdfで表示できてないのを確認しました
 Mutationによるデータの新規作成・更新はレスポンスを見れば自動的にキャッシュ（≒画面）に反映できます。#@# wawoon:（≒画面）のニアリイコールが機種依存文字みたいで, macおよびubuntuで文字化けしていました
 一方、先の3種の操作はレスポンスを見ただけではキャッシュの状態を最適な状態に保つことはできません。
 それぞれ、どう対応するべきかを見ていきます。
@@ -446,3 +448,5 @@ Connectionへの追加、削除についてはドメイン知識が必要にな�
 
 キャッシュに適切なデータの追加を行うためには、Connectionの利用箇所で使っているFragmentをレスポンスに対して再利用できるような構造でなくてはいけません。
 REST APIだとつい空のJSONを返してしまったりする場合がありますが、GraphQLではちゃんと操作した該当データを返却するようにしましょう。
+
+#@# zoncoen: Mutations updater に関してもレスポンスの例があると初心者にも理解しやすいと思いました
