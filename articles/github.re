@@ -18,12 +18,12 @@ GitHubのAPIはさすが数多の開発者が利用しているサービスだ�
 
 == Relay向けサーバ仕様への準拠
 
-#@# OK gfx: なんでいちクライアントライブラリの話が急にくるのか混乱のもとなのでもっと説明がほしい。クライアントライブラリのRelayが定めるGraphQL API仕様のこともRelayと呼ぶよ！この本でRelayといったら次からは「Relayが定めるGraphQL API仕様」のことだよ！とか書いたほうがいいと思う。（昔は "Relay Server Specification" という名前だったけど今は "GraphQL Server Specification" と呼ばれていて言及しにくい https://relay.dev/docs/en/graphql-server-specification ）
-#@# OK vv: たしかに
 GitHub v4 APIはFacebookが開発するJS+React向けクライアントライブラリである"Relay"が要求するサーバ仕様@<fn>{graphql-server-spec}を踏襲しています。
 GitHub v4 APIを丹念に調べることで、Relay向けの仕様をどのように組み込み、またそれを踏襲した上で拡張するかを学ぶことができます。
 GraphQLスキーマは自由ですが、すべてを自分で考えて試行錯誤するよりも、既存の教えから学ぶのが楽です。
 Relayがどのような仕様を要求しているかは@<chapref>{relay}で解説します。
+#@# OK gfx: なんでいちクライアントライブラリの話が急にくるのか混乱のもとなのでもっと説明がほしい。クライアントライブラリのRelayが定めるGraphQL API仕様のこともRelayと呼ぶよ！この本でRelayといったら次からは「Relayが定めるGraphQL API仕様」のことだよ！とか書いたほうがいいと思う。（昔は "Relay Server Specification" という名前だったけど今は "GraphQL Server Specification" と呼ばれていて言及しにくい https://relay.dev/docs/en/graphql-server-specification ）
+#@# OK vv: たしかに
 
 //footnote[graphql-server-spec][@<href>{https://relay.dev/docs/en/graphql-server-specification}]
 
