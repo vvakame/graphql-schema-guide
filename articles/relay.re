@@ -410,8 +410,9 @@ mutation {
 なお、筆者は念の為各プロジェクトで@<code>{clientMutationId}を実装しています。
 サボらないための命綱のようなものです。
 
-#@# wawoon: clientMutationIdは自分は実装していないですが、mutationのinputにidempotencyKey（冪等キー）という名前で二重送信防止用のuuidをもたせています。
-#@# wawoon: clientMutationIdをidempotency keyとして再利用する例はよく見られるので、mutationの冪等性についても追記していいかなと思いました。
+#@# OK wawoon: clientMutationIdは自分は実装していないですが、mutationのinputにidempotencyKey（冪等キー）という名前で二重送信防止用のuuidをもたせています。
+#@# OK wawoon: clientMutationIdをidempotency keyとして再利用する例はよく見られるので、mutationの冪等性についても追記していいかなと思いました。
+#@# OK vv: Relayの章で扱う内容ではなさそうなので一旦放置にします！ 冪等性に関する会話が https://github.com/vvakame/graphql-schema-guide/pull/2 にあります（メモ）
 
 == Mutations updater
 
@@ -428,11 +429,12 @@ mutation {
 RelayでUpdaterで指定できる操作の設定は@<code>{NODE_DELETE}、@<code>{RANGE_ADD}、@<code>{RANGE_DELETE}の3種です。
 それぞれ、データの削除、Connectionへの追加、Connectionからの削除に対応します。
 
-Mutationによるデータの新規作成・更新はレスポンスを見れば自動的にキャッシュ（≒画面）に反映できます。
+Mutationによるデータの新規作成・更新はレスポンスを見れば自動的にキャッシュ（＝画面）に反映できます。
 一方、先の3種の操作はレスポンスを見ただけではキャッシュの状態を最適な状態に保つことはできません。
 それぞれ、どう対応するべきかを見ていきます。
-#@# wawoon:（≒画面）のニアリイコールが機種依存文字みたいで, macおよびubuntuで文字化けしていました
-#@# zoncoen: wawoon さんのコメントが生成物にふくまれてしまっていそう（別の行になってないからコメントになっていない）あとコメントの指摘はそうでpdfで表示できてないのを確認しました
+#@# OK wawoon:（≒画面）のニアリイコールが機種依存文字みたいで, macおよびubuntuで文字化けしていました
+#@# OK zoncoen: wawoon さんのコメントが生成物にふくまれてしまっていそう（別の行になってないからコメントになっていない）あとコメントの指摘はそうでpdfで表示できてないのを確認しました
+#@# OK vv: イコール でも意味としておかしくないので置き換えました
 
 データを削除する場合、一般的なユースケースでは削除したいIDをリクエストに含めるでしょう。
 そのためクライアント側はドメイン知識があれば、処理が成功した時点でどのIDをキャッシュから消せばよいか分かります。

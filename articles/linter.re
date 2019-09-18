@@ -19,12 +19,26 @@ graphql-schema-linter@<fn>{graphql-schema-linter}はGraphQLスキーマの定義
 == チェック対象のスキーマをどう得るか
 
 これまでの章ではスキーマファーストとコードファーストについてあまり言及してきませんでした。
-#@# wawoon: 他の本ではすでに説明されているとおもうのですが、ここで簡単にスキーマファーストとコードファーストを説明したほうがいいと思います。
-ここで少し触れておきたいと思いますが、コードファーストでGraphQLサーバ・スキーマを構成するのは若干不利です。
+#@# OK wawoon: 他の本ではすでに説明されているとおもうのですが、ここで簡単にスキーマファーストとコードファーストを説明したほうがいいと思います。
+
+スキーマファーストの設計ではまずGraphQLスキーマを手書きする。
+そこからなんらかのツールを使ってresolverの雛形を生成し、自分で実装を与えてGraphQL APIを組み上げます。
+
+コードファーストはその反対で、ホスト言語上でresolverの実装を書いて、GraphQL APIを作り上げます。
+GraphQLスキーマはある意味その副産物となります。
+
+スキーマの設計をする上で、コードファーストでGraphQLサーバ・スキーマを構成するのは若干不利です。
 組織的な側面からの良し悪しはここでは論じませんが、GraphQLの仕様的な側面からなぜ不利なのかを簡単に解説します。
 
-コードファーストでGraphQLサーバを構成する場合、Introspection Queryを使ってエンドポイントからスキーマを引き出す形式になるでしょう。
-#@# wawoon: この場合SDLファイルやschema.json（？）をローカルにdumpして、その後にlintにかけることになると思うので、そのあたりの処理を具体的に書いたほう良さそうです。
+コードファーストでGraphQLサーバを構成する場合、Introspection Query@<fn>{introspection-query}を使ってエンドポイントからスキーマを引き出す@<fn>{schema.json}必要があります。
+Introspection Queryについてここでは詳細に解説しませんが、GraphQL用のリフレクションのようなものだと理解しておけばよいでしょう。
+詳細は筆者の既刊、"Apolloドハマリ事件簿"@<fn>{apollo-swamped-book}にてツール類を解説しています。
+#@# OK wawoon: この場合SDLファイルやschema.json（？）をローカルにdumpして、その後にlintにかけることになると思うので、そのあたりの処理を具体的に書いたほう良さそうです。
+
+//footnote[schema.json][一般にschema.jsonというファイル名で扱われることが多い。さらに加工しschema.graphqlなどに変換する必要がある]
+//footnote[introspection-query][@<href>{https://graphql.org/learn/introspection/}]
+//footnote[apollo-swamped-book][@<href>{https://booth.pm/ja/items/1321051}]
+
 この場合の問題点として、コメントやdirectiveに関する情報が欠落してしまいます。
 もちろん、ドキュメントの一部として書いたdescriptionや、directiveの一覧は得られます。
 しかし、クライアントに公開されない本当の意味でのコメントは出力できないですし、directiveがどこ付与されているかの情報も欠落します@<fn>{directive-and-introspection}。
