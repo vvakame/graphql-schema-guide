@@ -30,9 +30,10 @@ Relayがどのような仕様を定めているかは@<chapref>{relay}で解説�
 ここでは、GitHib v4 APIから学ぶべきことにフォーカスして論じます。
 
 IDの形式を人間が見て分かるものにするか、それとも何らかの符号化をして隠すか。
-技術書典Webでは@<code>{"Event:tbf07"}のような、人が見て分かる（そしてプログラム上で簡単に合成できる）ルールを採用しています。
-#@# sonatard:「合成できる」は、IDをクライアントサイドで生成できるという意味であってますか？
+技術書典Webでは@<code>{"Event:tbf07"}のような、人が見て分かる（そしてプログラム上で簡単に生成できる）ルールを採用しています。
 一方、GitHubでは@<code>{"MDEyOk9yZ2FuaXphdGlvbjEzNDIwMDQ="}のような形式です。
+#@# OK sonatard:「合成できる」は、IDをクライアントサイドで生成できるという意味であってますか？
+#@# OK vv: あってます！生成できる に置き換えてしまうことにします
 
 符号化することにより、次のような恩恵があると考えられます。
 
@@ -41,10 +42,10 @@ IDの形式を人間が見て分かるものにするか、それとも何らか
  1. 書式にユーザが依存しないようにする
 
 突き詰めると、DB上のIDをサーバ上でしか復号できないように暗号化して露出させる、というのもありえます。
-しかし、実際には既存のREST APIやURL設計との折り合いをつけるため、クライアント側でIDを合成可能にしておくほうが圧倒的に楽です。
+しかし、実際には既存のREST APIやURL設計との折り合いをつけるため、クライアント側でIDを生成可能にしておくほうが圧倒的に楽です。
 #@# gfx: KibelaではGitHubを参考にIDを設計して、クライアントでは合成しないようにした。でもいろいろ面倒だったな…。最終的にはIDからリソースを得るフィールドとは別に "noteFromPath(path: String!)" みたいな「パスを渡すとリソースを得る」みたいなフィールドを増やすことにした。ただまあ、public web api だからいま考え直してもこれにするかなと思う。とはいえ内部でしか使わないAPIならクライアントで合成できるようなフォーマットにしてもいいと思う。
 
-その意味では、GitHub v4 APIのIDも、見るからにbase64なのでクライアント側で合成可能な形式であると考えられます。
+その意味では、GitHub v4 APIのIDも、見るからにbase64なのでクライアント側で生成可能な形式であると考えられます。
 
 どちらの方式もメリット・デメリットが存在するので、自分の運用するサービスではどちらのメリットが勝つかをよく検討するとよいでしょう。
 
@@ -105,8 +106,9 @@ GraphQLにはinterfaceやunion typesといった概念があり、GitHub v4 API�
 
 interfaceは何らかの共通点がある要素を抽象化したものです。
 多くのプログラミング言語にあるinterfaceとだいたい同じものです。
-union typesはinterfaceと似た特徴がありますが、共通するフィールドを持たないため、各型毎のフィールドの参照にはfragmentの利用が必須です。
-#@# sonatard:「共通するフィールドを持たない」のイメージが難しいと思いました。色々な型を返せるの方がわかりやすい？
+
+union typesはinterfaceと似た特徴がありますが、共通要素のない色々な型を返せるため、各型毎のフィールドの参照にはfragmentの利用が必須です。
+#@# OK sonatard:「共通するフィールドを持たない」のイメージが難しいと思いました。色々な型を返せるの方がわかりやすい？
 
 たとえば、@<code>{User}型に着目してみます。
 
@@ -125,7 +127,53 @@ URLの構造に注目してみます。
 @<href>{https://github.com/vvakame/metago}の場合、@<code>{vvakame}部分は@<code>{User}型の値です。
 一方、@<code>{https://github.com/google/wire}の@<code>{google}部分は@<code>{Organization}型の値です。
 ここが統一されていないのは人間にとってのわかりやすさのためでしょうし、歴史的経緯の面もあると思います。
-#@# sonatard:帰ってくるレスポンスが具体的に書いてあるとまったく違う型を返せるということがわかりやすいかなと思いました
+試しに両リポジトリのownerを調べてみます。
+@<list>{repository-owner}のクエリを投げると、UserとOrganizationがそれぞれ返ってきていることがわかります（@<list>{repository-owner-result}）。
+#@# OK sonatard:帰ってくるレスポンスが具体的に書いてあるとまったく違う型を返せるということがわかりやすいかなと思いました
+
+//list[repository-owner][ownerの具体的な型が異なる]{
+{
+  a: repository(owner: "vvakame", name: "metago") {
+    owner { # owner = ResourceOwner
+      id
+      ... on User {
+        name
+        bio # Userにしか存在しない
+      }
+    }
+  }
+  b: repository(owner: "google", name: "wire") {
+    owner { # owner = ResourceOwner
+      id
+      ... on Organization {
+        name
+        teamsUrl # Organizationにしか存在しない
+      }
+    }
+  }
+}
+//}
+
+//list[repository-owner-result][結果]{
+{
+  "data": {
+    "a": {
+      "owner": {
+        "id": "MDQ6VXNlcjEyNTMzMg==",
+        "name": "Masahiro Wakame",
+        "bio": "TypeScript and AppEngine/Go"
+      }
+    },
+    "b": {
+      "owner": {
+        "id": "MDEyOk9yZ2FuaXphdGlvbjEzNDIwMDQ=",
+        "name": "Google",
+        "teamsUrl": "https://github.com/orgs/google/teams"
+      }
+    }
+  }
+}
+//}
 
 リポジトリの情報を取得するQueryに着目すると@<code>{repository(owner: "google", name: "wire")}という引数になります。
 ここでは、ownerの型は区別されませんし、GraphQL的な意味でのID@<fn>{google-id}を渡すこともできません。
@@ -158,7 +206,8 @@ GraphQLにもセキュリティの問題があります。
 
 外部にAPIを公開する場合、この2種類の考え方を真似する必要があります。
 もし、公式なクライアントしか存在せず、それ以外のリクエストを考慮しなくてよい場合でも、Node limitは設けたほうがよいでしょう。
-#@# sonatard: 複雑度の計算の実装は自分でしなければいけないということがわかると読みやすいかと思いました
+@<kw>{複雑度,complexity}計算の実装方法はフレームワークごとに異なりますので、各自調べてみてください。
+#@# OK sonatard: 複雑度の計算の実装は自分でしなければいけないということがわかると読みやすいかと思いました
 
 具体的な対処として、クエリを実行する前にそのクエリがどのくらいのデータを要求しているかを見積もります。
 この複雑度を見積もれるようにするためには、スキーマの構造が重要です。
