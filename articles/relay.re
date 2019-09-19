@@ -148,8 +148,9 @@ Cursor Connectionsでは、単にリストを返す代わりにConnectionサフ�
 ConnectionはRelayの仕様ではフィールドに@<code>{pageInfo: PageInfo!}と@<code>{edges: [XxxEdge]}を持ちます。
 @<code>{PageInfo}型はページングに関する情報を持ち、@<code>{Edge}型は@<code>{cursor: String!}@<fn>{cursor-types}と@<code>{node: Xxx}を持ちます。
 
-#@# zoncoen: 細かいんですが "String!" 以外でもいいよ！ですかね？
-//footnote[cursor-types][仕様に注釈としてString以外でもいいよ！とあります。筆者の場合、DBの仕様上nullを許容しないと処理コストが爆裂に悪化するので@<code>{cursor: String}にして使っています]
+//footnote[cursor-types][仕様に注釈で"String!以外の型でもいいよ"とあります。筆者の場合、DBの仕様上nullを許容しないと処理コストが爆裂に悪化するので@<code>{cursor: String}にして使っています]
+#@# OK zoncoen: 細かいんですが "String!" 以外でもいいよ！ですかね？
+#@# OK vv: です！ 'This shows the cursor type as String!, other types are possible' です
 
 Connection、Edge、PageInfoについて、仕様にないフィールドを追加するのは自由です。
 実際に、GitHub v4 APIの場合、ConnectionにtotalCountフィールドを追加していたり、edgesの他にcursorを持たないnodesを定義していたりします。
@@ -447,15 +448,62 @@ Mutationによるデータの新規作成・更新はレスポンスを見れば
 しかしながら複数のデータを消したパターンや、削除対象のIDがサーバ側で決まるパターンもあるでしょう。
 このようなパターンと一貫性のある設計とするため、レスポンスには必ず削除したIDを含めるようにします。
 
+技術書典Webのサークルチェックを解除する@<code>{removeCheckedCircle}のMutationを例にあげます。
+サークルチェックはログインユーザ+対象サークルで操作できます。
+そのため、チェックの解除を行ってもデータ本体である@<code>{CheckedCircleExhibit}のIDをクライアントが知る機会はありません。
+そのままではクライアント側で削除されたデータのキャッシュを（サーバ側DBと同じ状態にするために）消すことができません。
+これを解消するため、@<code>{removedCheckedCircleExhibitID}を設けてやります（@<list>{mutation-removed-id}）。
+
+//list[mutation-removed-id][削除されたIDがわかるMutationの例]{
+mutation {
+  removeCheckedCircle(input: {
+    circleExhibitInfoID: "CircleExhibitInfo:5726401537769472"
+  }) {
+    removedCheckedCircleExhibitID # 削除されたID
+    checkedCircleExhibit {
+      id
+      circle {
+        id
+        name
+      }
+    }
+  }
+}
+//}
+
+これを実行すると@<list>{mutation-removed-id-result}のようにMutationが実行された結果、削除されたデータのIDが得られます。
+クライアント側で該当のキャッシュを削除する処理を書くことができるようになりました。
+
+//list[mutation-removed-id-result][Mutationの実行結果]{
+{
+  "data": {
+    "removeCheckedCircle": {
+      "removedCheckedCircleExhibitID":
+        "CheckedCircleExhibit:5629499534213120:5726401537769472",
+      "checkedCircleExhibit": {
+        "id": "CheckedCircleExhibit:5629499534213120:5726401537769472",
+        "circle": {
+          "id": "CircleExhibitInfo:5726401537769472",
+          "name": "たとえば村"
+        }
+      }
+    }
+  }
+}
+//}
+
 残念ながら、削除したIDであることを示すコンセンサスの取れたフィールド名はありません。
 レスポンスに削除したIDを含むデータ全体を返すのでもよいですし、削除したIDをもつフィールドをPayloadに明示的に含めるのでもよいでしょう。
 GitHub v4 APIは前者を選んでいます。
+筆者は今のところ、見てわかりやすい後者を選択しています。
 
 Connectionへの追加、削除についてはドメイン知識が必要になるため、ライブラリに全自動的に処理させるのは難しいでしょう。
 代わりに、今行ったMutationがどういう処理で、どういう結果が返ってきて、どうやったら既存のConnectionに追加、削除できるかを人間は理解できるはずです。
 人間が頑張りましょう。
+実際にどういう処理を書くかはクライアントライブラリごとに大きくことなるため、ここでは割愛します。
 
 キャッシュに適切なデータの追加を行うためには、Connectionの利用箇所で使っているFragmentをレスポンスに対して再利用できるような構造でなくてはいけません。
 REST APIだとつい空のJSONを返してしまったりする場合がありますが、GraphQLではちゃんと操作した該当データを返却するようにしましょう。
 
-#@# zoncoen: Mutations updater に関してもレスポンスの例があると初心者にも理解しやすいと思いました
+#@# OK zoncoen: Mutations updater に関してもレスポンスの例があると初心者にも理解しやすいと思いました
+#@# OK vv: 削除されたIDのくだりの例を追加してみました！他2つはガッツリクライアント側コードの話になるので割愛します…！
