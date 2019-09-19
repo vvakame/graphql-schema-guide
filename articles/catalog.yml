@@ -9,7 +9,8 @@ CHAPS:
   - tips.re
 
 APPENDIX:
-  - tbf-ticket.re
+  # - tbf-ticket.re
 
 POSTDEF:
-#   - contributors.re
+  - tbf-ticket.re
+  # - contributors.re
