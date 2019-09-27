@@ -1,6 +1,7 @@
 .DS_Store
 
 distribute/
+articles/images/cover.png
 *.key
 
 node_modules/

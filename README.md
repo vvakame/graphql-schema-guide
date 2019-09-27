@@ -7,3 +7,11 @@ https://vvakame.booth.pm/items/1576562 で500円で販売しています。
 
 ビルドの仕方は、このリポジトリのCircle CIの設定ファイルとかを見て察してください。
 だいたい `./build-in-docker.sh` を叩けばなんとかなるはずです。
+
+```
+$ REVIEW_CONFIG_FILE=config-ebook.yml npm run pdf
+```
+
+で電書用のトンボが入ってないPDFが作れます。
+表紙データはリポジトリに含めていないのでそのままだとエラーになります。
+`articles/config-ebook.yml` の `coverimage` の指定をコメントアウトしてください。
