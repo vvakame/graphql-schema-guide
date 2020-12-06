@@ -1,7 +1,18 @@
 = 前書き
 
 本書は筆者（@vvakame）がGraphQL@<fn>{graphql-url}を使った開発の中で得た知見を振り返り、解説するものです。
-過去にGo言語+gqlgen@<fn>{gqlgen-web}という構成で、MTC2018カンファレンスLP@<fn>{mtc2018}、技術書典Web@<fn>{tbf-web}、弊社社内ツール@<fn>{internal-tool}を作成してきました。
+
+技術書典7で初版を出して、今回は1年ぶりに内容を更新した改訂第二版となります。
+この1年で技術書典WebのGraphQLスキーマを大幅に改訂、修正しました。
+なぜ修正しようと思ったのか、それに至る背景と、改修の結果どうよくなったかを文章に反映し、最新の知見をお届けしたいと思います。
+第一版を買ってくれた人は@<chapref>{history}を眺めると変更差分の概要を把握できると思います。
+また、GitHubの更新差分@<fn>{diff-v1-v2}を見ていただくのも役に立つかもしれません。
+
+#@# TODO あとで v2.0.0 タグ打って更新
+//footnote[diff-v1-v2][@<href>{https://github.com/vvakame/graphql-schema-guide/compare/v1.0.0...master}]
+
+筆者のGraphQL歴を紹介します。
+Go言語+gqlgen@<fn>{gqlgen-web}という構成で、MTC2018カンファレンスLP@<fn>{mtc2018}、技術書典Web@<fn>{tbf-web}、社内ツールのgchammer@<fn>{internal-tool}などを作成してきました。
 それらで得た知見をこの本で解説します。
 
 //footnote[graphql-url][@<href>{https://graphql.org/}]
@@ -10,7 +21,7 @@
 //footnote[mtc2018][@<href>{https://tech.mercari.com/entry/2018/10/24/111227}]
 #@# prh:disable:web
 //footnote[tbf-web][@<href>{https://techbookfest.org/}]
-//footnote[internal-tool][今のところ外部で詳細な話をしたことがない。Spanner向けサポートツール]
+//footnote[internal-tool][@<href>{https://engineering.mercari.com/blog/entry/20201202-7ab3acd789/}]
 
 主にスキーマを中心に据えたベストプラクティスを紹介します。
 Go言語に限らず、そしてスキーマファースト・コードファーストに限らず、読んで得るものがあるでしょう。
@@ -18,7 +29,8 @@ Go言語に限らず、そしてスキーマファースト・コードファー
 #@# OK vv: GraphQLミートアップ行った時とかの口頭語も○○ファーストだったのでこのままにします！（主張は理解できる）
 
 本書の前身として、"GraphQLサーバをGo言語で作る"@<fn>{graphql-with-go-book}と"Apolloドハマリ事件簿"@<fn>{apollo-swamped-book}があります。
-booth.pmで販売またはGitHubで全文を公開していますので、こちらもぜひ読んでみてください。
+若干古くなっていますが、booth.pmで販売またはGitHubで全文を公開しています。
+こちらも気が向いたらぜひ読んでみてください。
 特に、"GraphQLサーバをGo言語で作る"とは解説が重複している箇所もあります。
 
 //footnote[graphql-with-go-book][@<href>{https://vvakame.booth.pm/items/1055228}]
@@ -49,13 +61,20 @@ AWSは知らん！たぶんAuroraあたりがそれなんじゃないでしょ�
 
 @<chapref>{tbf-ticket}はオマケです。技術書典公式Webでの機能開発の日々を日記でお送りします。
 
-== 謝辞
+@<chapref>{history}は第1版と第2版の間の差分や半生を雑に解説します。
+
+== 謝辞（第一版）
 
 最後まで書き終わってから、この本って巻末は日記なのであとがきがないな…？と気が付きました。
 なので、ここに謝辞を書きます！バーン！
 
 イベント一週間前の日曜日に60Pくらいの書物のレビューを依頼し、快諾してくださった皆様本当にありがとうございます…！
 @wawoon_jp さん、@sonatard さん、@__gfx__ さん、@zoncoen さん、本当にありがとうございました！
+
+== 謝辞（第二版）
+
+#@# TODO 後で書く
+TBD
 
 == 予備知識1：GraphQLの概要
 
