@@ -3,7 +3,6 @@
 この章では、GitHubがどのような工夫を行っているかを解説していきます。
 本書ではGraphiQLなどPlaygroundの使い方はいちいち解説しません。
 が、Document Explorer（@<img>{document-explorer}）片手にみなさんも色々と探検してみてください。
-#@# vv: が、 → 余計なのでトルでいいかな…
 
 //image[document-explorer][Document Explorer][scale=0.4]{
 //}
@@ -11,10 +10,13 @@
 GitHubはGraphQLを使ったv4 APIを提供しています@<fn>{github-v4}。
 GitHubはおそらく皆さん使っているでしょうから、GitHub自体の説明は省いてよいでしょう。
 
-//footnote[github-v4][@<href>{https://developer.github.com/v4/}]
+//footnote[github-v4][@<href>{https://docs.github.com/en/free-pro-team@latest/graphql}]
 
 GitHubのAPIはさすが数多の開発者が利用しているサービスだけあって、さまざまなところまでスキーマ設計上の配慮が行き届いています。
 筆者が色々と試して経験を積んだ結果、GitHubから得られるプラクティスには大きな価値があると感じるようになりました。
+
+最近のGitHubはドキュメンテーションシステムを刷新しつつあり、第1版執筆時点とだいぶドキュメントの様子が変わりました。
+ReferenceのQuerirs, Mutations, Objects, ... と各項目を眺めなおすと、新しい発見があるかもしれません。
 
 == Relay向けサーバ仕様への準拠
 
@@ -52,6 +54,7 @@ IDの形式を人間が見て分かるものにするか、それとも何らか
 その意味では、GitHub v4 APIのIDも、見るからにbase64なのでクライアント側で生成可能な形式であると考えられます。
 
 どちらの方式もメリット・デメリットが存在するので、自分の運用するサービスではどちらのメリットが勝つかをよく検討するとよいでしょう。
+第二版執筆時点では、クライアント側でIDを合成可能にしたことは後悔していません。
 
 == 命名規則について
 
@@ -63,7 +66,7 @@ Queryの場合、@<code>{repository}や@<code>{repositories}のような命名�
 
 基本方針としてこのプラクティスを踏襲します。
 筆者は@<code>{repositories}のような複数形の代わりに、@<code>{repositoryList}のような命名規則も試しました。
-しかし、返り値の型がリストではなくConnectionだったりするため、いまいちしっくり来なくて複数形派に鞍替えしました。
+しかし、返り値の型はConnectionになので、リストじゃないじゃん！となってしまい、いまいちしっくり来なくて複数形派に鞍替えしました。
 
 Mutationの場合、@<code>{addStar}や@<code>{createIssue}のように、"動詞+名詞"の形です。
 面白いのは、insertという動詞を使っているMutationが存在していないところです。
@@ -79,6 +82,7 @@ Mutationについても、筆者は当初GraphiQLなどでの使い勝手を考�
 何かしたい時に、リソース名（名詞）はまぁだいたいのパターンで分かるだろうから入力補完が賢く働くように…という理由でした。
 しかし、実際に試してみると@<img>{suggest}のようにprefix以外でもマッチすることがわかったため、GitHubと同じでいいか…となりました。
 我々はツールの上で開発生活をしているので、ツール上で困らない、というのは重要な判断上の指針です。
+これも、第二版執筆時点で特に問題を感じていません。
 
 //image[suggest][先頭以外でも普通にマッチする][scale=0.6]{
 issue って書いたら closeIssue とかがサジェストされる様子
@@ -97,7 +101,8 @@ input objectや、Mutationの返り値の型なども参考になります。
 
 筆者はinput型の命名規則はGitHubを踏襲しつつ、返り値の型は@<code>{createCircle}や@<code>{updateCircle}で共通の@<code>{CirclePayload}に共通してしまうことが多いです。
 クエリ中に返り値の型は出てこないため、将来的に返り値の型を個別に変更しても大したBreaking Changeにはならなかろう…という慢心をしています@<fn>{its-flag}。
-今の所これで問題になっていません。
+第二版執筆時点で特に問題を感じていません。
+とはいえ、必要であれば@<code>{PayPalCheckoutPayload}のような特定のMutation固有の型も作っています。
 
 //footnote[its-flag][完全にフラグである]
 
@@ -114,24 +119,50 @@ interfaceは何らかの共通点がある要素を抽象化したものです�
 union typesはinterfaceと似た特徴がありますが、共通要素のない色々な型を返せるため、各型毎のフィールドの参照にはfragmentの利用が必須です。
 #@# OK sonatard:「共通するフィールドを持たない」のイメージが難しいと思いました。色々な型を返せるの方がわかりやすい？
 
-たとえば、@<code>{User}型に着目してみます。
+たとえば、@<code>{User}型@<fn>{user-object}に着目してみます。
 
-実装しているinterfaceは@<code>{Node}に始まり、@<code>{Actor}、@<code>{RegistryPackageOwner}、@<code>{RegistryPackageSearch}、@<code>{ProjectOwner}、@<code>{RepositoryOwner}、@<code>{UniformResourceLocatable}、@<code>{ProfileOwner}、@<code>{Sponsorable}があります。
+//footnote[user-object][@<href>{https://docs.github.com/en/free-pro-team@latest/graphql/reference/objects#user}]
+
+実装しているinterfaceは@<code>{Node}に始まり、
+@<code>{Actor}、
+@<code>{PackageOwner}、
+@<code>{ProfileOwner}、
+@<code>{ProjectOwner}、
+@<code>{RepositoryOwner}、
+@<code>{Sponsorable}、
+@<code>{UniformResourceLocatable}
+があります@<fn>{r1-diff-interface}。
 複雑ですね…。
 これはモデルの構造を反映していると考えられます。
 何らかのデータのオーナーや、操作の主体になれる場合、interfaceが利用されていそうです。
 
-また、@<code>{User}型が含まれるunion typesは@<code>{AuditEntryActor}、@<code>{Assignee}、@<code>{ReviewDismissalAllowanceActor}、@<code>{PushAllowanceActor}、@<code>{SearchResultItem}、@<code>{CollectionItemContent}のようです@<fn>{list-union-types}。
+//footnote[r1-diff-interface][第1版時点と比べて@<code>{PackageOwner}が追加、@<code>{RegistryPackageOwner}、@<code>{RegistryPackageSearch}が削除されている]
+
+また、@<code>{User}型が含まれるunion typesは
+@<code>{AuditEntryActor}、
+@<code>{Assignee}、
+@<code>{ReviewDismissalAllowanceActor}、
+@<code>{PushAllowanceActor}、
+@<code>{SearchResultItem}、
+@<code>{EnterpriseMember}、
+@<code>{RequestedReviewer}、
+@<code>{Sponsor}
+のようです@<fn>{r1-diff-union}@<fn>{list-union-types}。
 これまた複雑です。
 何らかの操作の対象、またはログやデータの一部となる場合、union typesが利用されていそうです。
 
 //footnote[list-union-types][interfaceと違い、どのunion typesに属しているか調べるのはDocument Explorerでは難しいので、Introspection Queryの結果から手で検索しました]
+//footnote[r1-diff-union][第1版時点と比べて@<code>{CollectionItemContent}が削除されている]
 
 URLの構造に注目してみます。
 @<href>{https://github.com/vvakame/metago}の場合、@<code>{vvakame}部分は@<code>{User}型の値です。
 一方、@<code>{https://github.com/google/wire}の@<code>{google}部分は@<code>{Organization}型の値です。
-ここが統一されていないのは人間にとってのわかりやすさのためでしょうし、歴史的経緯の面もあると思います。
-試しに両リポジトリのownerを調べてみます。
+それぞれ、@<code>{vvakame}や@<code>{google}の部分は文脈によって型が違いますが、両方とも@<code>{RepositoryOwner}を実装しています。
+
+URLの書式が同じなのに、場合によって実際の型が異なるというのは人間にとってのわかりやすさのためでしょうし、歴史的経緯の面もあると思います。
+そこを埋めるために@<code>{interface}が使われているわけです。
+
+実際に、APIを叩いて両リポジトリのownerを調べてみます。
 @<list>{repository-owner}のクエリを投げると、UserとOrganizationがそれぞれ返ってきていることがわかります（@<list>{repository-owner-result}）。
 #@# OK sonatard:帰ってくるレスポンスが具体的に書いてあるとまったく違う型を返せるということがわかりやすいかなと思いました
 
@@ -141,6 +172,7 @@ URLの構造に注目してみます。
     owner { # owner = ResourceOwner
       id
       ... on User {
+        __typename
         name
         bio # Userにしか存在しない
       }
@@ -150,6 +182,7 @@ URLの構造に注目してみます。
     owner { # owner = ResourceOwner
       id
       ... on Organization {
+        __typename
         name
         teamsUrl # Organizationにしか存在しない
       }
@@ -164,13 +197,15 @@ URLの構造に注目してみます。
     "a": {
       "owner": {
         "id": "MDQ6VXNlcjEyNTMzMg==",
+        "__typename": "User",
         "name": "Masahiro Wakame",
-        "bio": "TypeScript and AppEngine/Go"
+        "bio": "❤️ TypeScript, Go, GraphQL and 🐈 "
       }
     },
     "b": {
       "owner": {
         "id": "MDEyOk9yZ2FuaXphdGlvbjEzNDIwMDQ=",
+        "__typename": "Organization",
         "name": "Google",
         "teamsUrl": "https://github.com/orgs/google/teams"
       }
@@ -182,7 +217,7 @@ URLの構造に注目してみます。
 リポジトリの情報を取得するQueryに着目すると@<code>{repository(owner: "google", name: "wire")}という引数になります。
 ここでは、ownerの型は区別されませんし、GraphQL的な意味でのID@<fn>{google-id}を渡すこともできません。
 人間の認識やUIに寄り添った設計になっています。
-@<code>{ownerId}ではなく@<code>{owner}を引数に要求しているのは、何を渡してほしいのかを暗に伝える、よい設計といえます。
+@<code>{ownerId}と@<code>{owner}を明確に使い分けているのは、引数に何を渡してほしいのかを伝える、よい設計といえます。
 
 //footnote[google-id][Google orgのIDは@<code>{"MDEyOk9yZ2FuaXphdGlvbjEzNDIwMDQ="}で、databaseIdは@<code>{1342004}です。]
 
@@ -193,6 +228,61 @@ GitHubのAPIはidやdatabaseIdを引数に求める箇所と、前述のよう�
 本格的なリリースの前にスキーマを再設計する工程を考慮に入れる、などの工夫が必要でしょう。
 使う前に困る箇所をすべて潰せると幸せですが、使わずに困ることは難しいですからね。
 
+== enumの利用
+
+GitHubのAPIは実に多数のenumを利用@<fn>{github-enum}しています。
+
+//footnote[github-enum][@<href>{https://docs.github.com/en/free-pro-team@latest/graphql/reference/enums}]
+
+第一版執筆時点では筆者はenumをほぼ使わずにシステムを構成していました。
+しかし、後々enumは可能な限り使い倒す方がよい…と考えを改め、現在（第二版執筆時）に至っています。
+
+enumを使う利点は、変更に強いことです。
+"変更に強い"というのが何を指すかというと、変えたときに影響範囲が適切に絞り込むことができ、破壊的変更を加えたら静的にそれがチェックできることを指すことにします。
+enumの代わりに@<code>{String}を使っていると、その"値"がどういう性質かを保証することは難しくなります。
+たとえば、Pull Requestの状態を表す@<code>{PullRequestState}の値を、Issueの状態を表す@<code>{IssueState}の値として流用できてしまったら困るわけです。
+@<code>{CLOSED}を渡したら偶然動くかもしれないけど、@<code>{MERGED}を渡したらエラーになったりするわけです。
+これの区別を行うためには型によるサポートが有用です。
+
+フロントエンド側開発での仕様の把握が容易であるという点についても、enumの利用は好ましいです。
+取りうる値は何か？前回確認時から選択肢は増えているのか？減った場合は何が減ったのか？という把握も楽になります。
+enum以外のScalar（Stringなど）やドキュメントの併用による運用より、機械的に保証されるほうが優秀なのは言うまでもないでしょう。
+
+また、フロントエンド側からの入力をGraphQLのフレームワークレベルで検知しエラーにできるのも得難い利点です。
+フロントエンドからバックエンドまで一貫性のある仕組みによる担保は安心感が違います。
+
+さて、第一版執筆時点でなぜenumを使わなかったのか？という点に少し触れておきます。
+これは単にバックエンド側の構成に可能な限り手を加えたくなかったからです。
+REST APIと構成をほぼ変えずに…という意図だったのですが、実際にenumを使うようにして振り返ると、足りなかったのは工夫でした。
+
+1つの値が概ね、3種類の用途に使われていました。
+
+ 1. 既存のAPI（REST API）としての露出
+ 2. GraphQL上への露出
+ 3. データベースへ保存するときの表現
+
+これら3つすべてを@<code>{string}などで実装している場合、それぞれに差をつけることはできません。
+たとえば、いままで@<code>{"market"}という文字列を値に使っていた場合、GraphQLでの表現をenumで@<code>{"MARKET"}と変えたい場合、1も3も一緒くたに表現が変わってしまいます。
+
+そこで、バックエンド上でも個別に型を割り当てるようにして、1、2、3のそれぞれの露出に対して変換ロジックを噛ませることができれば、用途別に異なる表現を取ることができます。
+これを達成するために、型と値と用途ごとの変換ロジックを持ったコードを自動生成するツールを作りました。
+わりとサクッと作れたので最初からやっておけばよかった…となりました。
+
+この知見を踏襲できるようにするため、用途の分解を自分のアプリケーションに対して行うのと、用途別の対応方法が用意されているかを最初に検討してみるのは正しい姿勢でしょう。
+
+== GitHubがやっていないこと
+
+GitHubがやっていない、超絶テクニックを思いついてしまった場合、それはおそらくやらないほうがよいでしょう。
+
+筆者が第一版の時点でやってみて、現時点ではやらないほうがよかった！と反省しているのは@<code>{Query}でのinput objectの利用です。
+これについては後述しますが、GitHubがやっていないことです。
+複数の選択肢が思いつくとき、GitHubが何をやっていないかに注目し考えてみるとよいでしょう。
+なぜならば、それはGitHubもやろうと思ったけれどもメリットをデメリットが上回ったのでやらなかった、と考えられるからです。
+
+新しい知見を得るには時に冒険も必要でしょうが、引き返せるタイミングを見極めながら挑戦したいものです。
+
+#@# TODO 後述した箇所に対してchaprefとかを貼る
+
 == セキュリティのためのrate limitとcomplexity
 
 GraphQLにもセキュリティの問題があります。
@@ -201,7 +291,7 @@ GraphQLにもセキュリティの問題があります。
 この問題に対応するため、GitHub v4 APIではresource limitations@<fn>{github-resource-limitations}が定められています。
 制限には2種類あり、クエリ1回あたりの複雑度を定めるNode limitと、1時間あたりにどれだけのコストを消費できるかを定めるRate limitがあります。
 
-//footnote[github-resource-limitations][@<href>{https://developer.github.com/v4/guides/resource-limitations/}]
+//footnote[github-resource-limitations][@<href>{https://docs.github.com/en/free-pro-team@latest/graphql/overview/resource-limitations}]
 
 詳しい解説は公式ドキュメントを参照してください。
 かなりわかりやすく書かれています。
@@ -256,6 +346,13 @@ GraphQLにもセキュリティの問題があります。
 #@# OK gfx: Kibelaでは内部APIは無制限に使えて公開APIに厳密にコスト/バジェットを設定するというダブスタな設計にしてしまった。しょうがないのじゃよ…。ただ内部といえどもAPIを叩くのが別チームならちゃんとやったほうがいい。
 #@# vv: ﾜｶﾙｰ 今技術書典だとユーザの権限見てちょいちょい変えてるんだけどcomplexityの計算ちゃんとできるように改修して統一基準にしたい
 
+ガッチガチに固めたい場合、Apolloが@<kw>{APQ,Automatic Persisted Queries}@<fn>{aqp}という仕様を整えています。
+これは、クエリ全体を毎回送ったりパースしたりしないでよいように、ダイジェストだけを送りサーバ側がそれをキャッシュに持っていたらそれを使う、という仕組みです。
+この仕組をさらに積極的に使うと、APIサーバをビルドするときに利用可能なクエリを事前登録しておき、そこにないリクエストはすべて弾く、とすることもできるでしょう。
+そこまでガチガチの運用が必要なパターンはめったにないと思いますが…。
+
+//footnote[aqp][@<href>{https://www.apollographql.com/docs/apollo-server/performance/apq/}]
+
 == Schema Changes
 
 GitHub v4 APIはスキーマの変更をちゃんとトラッキングし、公開しています@<fn>{schema-changes}。
@@ -267,6 +364,14 @@ GitHub v4 APIはスキーマの変更をちゃんとトラッキングし、公�
 偉いですね…。
 
 GraphQL自体は@<code>{@deprecated}という組み込みのdirectiveを持っています。
-これをちゃんと使ったほうがよい気はします。
+これはちゃんと使い倒していきましょう。
+reasonのところに、代替の手段を明記するか、代替がない場合はその背景の説明へのリンクなどを含めるようにするべきです。
 
-筆者はまだ破壊的変更をしたら自分で関係箇所を直せばよいシステムしか運用していないため、このあたりにあまり知見がありません。
+各種linter@<fn>{eslint-plugin-graphql}を併用すると、@<code>{deprecated}な要素を使っていると警告を得ることができます。
+警告が出るたびに直すように運用していくのが理想です。
+
+//footnote[eslint-plugin-graphql][@<href>{https://www.npmjs.com/package/eslint-plugin-graphql}]
+
+割れ窓にならないようにするために、スキーマの更新タイミングとそれをフロントエンドに取り込むタイミングは分割できるようにする。
+つまり、警告になる箇所が増える場合、それの対応コストを支払うタイミングをフロントエンドの開発者が主体的にコントロールできるようにするべきです。
+一方、最新のスキーマに対して開発中に参照するスキーマが古くなりすぎないようにする工夫も同時に行ったほうがよいでしょう。

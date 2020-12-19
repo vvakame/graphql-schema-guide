@@ -332,4 +332,5 @@ directiveの使い方を考えます。
 
 //comment{
  * ロギングの話
+ * NoopPayload はアンチパターンだったわ という話
 //}
