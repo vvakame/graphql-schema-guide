@@ -65,7 +65,7 @@ GitHub v4 API@<fn>{github-explorer}を例に見てみましょう。
 @<code>{1342004}はデータベースIDと一致しているのでデータのIDでしょう。
 先頭の@<code>{012}の部分は不明ですが、おそらくIDの書式バージョンを表しているのではないかと筆者は考えています。
 
-//footnote[github-explorer][@<href>{https://developer.github.com/v4/explorer/}]
+//footnote[github-explorer][@<href>{https://docs.github.com/en/free-pro-team@latest/graphql/overview/explorer}]
 
 //list[code/relay/globalObjectIdentification/github-1.graphql][Google organizationのIDを調べる]{
 #@mapfile(../code/relay/globalObjectIdentification/github-1.graphql)
@@ -154,7 +154,9 @@ ConnectionはRelayの仕様ではフィールドに@<code>{pageInfo: PageInfo!}�
 
 Connection、Edge、PageInfoについて、仕様にないフィールドを追加するのは自由です。
 実際に、GitHub v4 APIの場合、ConnectionにtotalCountフィールドを追加していたり、edgesの他にcursorを持たないnodesを定義していたりします。
-筆者もedgesのcursorは必要なくて、pageInfoのendCursorで十分な場合がほとんどなので、真似してnodesを定義して運用しています。
+筆者もedgesのcursorは必要なくて、pageInfoのendCursorで十分な場合がほとんどなので、真似してnodesを定義して運用しています@<fn>{apollo-v3-paging}。
+
+//footnote[apollo-v3-paging][第2版執筆時点で、Apollot Client v3でnodesを利用すると困るシチュエーションが発生。後述。]
 
 では、Cursor Connectionsの実際をGitHub v4 APIを例に見てみましょう（@<list>{code/relay/cursorConnections/github-1.graphql}）。
 Repositoryのリストを返す場合、@<code>{[Repository]}を返す代わりに@<code>{RepositoryConnection}を返します。
@@ -278,15 +280,41 @@ KVSでも実装可能でしょうし、RDBでも多少の工夫は必要だと�
 
 この仕様で明記されていないのが、検索に使うパラメータをどうやって引数に指定するかです。
 GitHub v4 APIの場合、firstやafterと同じ箇所、つまりフィールドの引数にprivaryやらorderByやらisForkが生えています。
-技術書典Webでは、Cursor Connections以外のパラメータはinput要素にまとめてしまっています。
+
+第1版執筆時点では、技術書典Webでは、Cursor Connections以外のパラメータはinput要素にまとめてしまいました@<fn>{retrospective-input}。
 @<code>{circles}フィールドの引数に@<code>{eventID: ID!}や@<code>{eventExhibitCourseID: ID}がある場合、それをまとめた@<code>{CirclesInput}を定義します。
 @<code>{circles(first: Int, after: String, input: CirclesInput!): CircleExhibitInfoConnection!}という感じです。
 #@# OK sonatard: inputが突然出てきたので何者！？と思ってしまいました。他のパラメーターまとめる専用の型を独自に作ったとわかるとすんなり入ってくると思いました。
 
-どちらのやり方がいいかは今はまだ突き詰められていません。
-複雑な管理者用画面などを実装しはじめると、引数の数が増えても破綻しにくいinputにまとめる方式のほうが有利ではないかと考えているのですが、はてさて？
+//footnote[retrospective-input][後にこれを反省しinputを全部外してまわることになる]
 
-さて、Cursor Connectionsの仕様を無視すると発生しうる問題、そしてワザと無視してもよい場合について考えます。
+第二版執筆時点では、@<code>{Query}で@<code>{input}を使うのはアンチパターンである、と認識を改めています。
+第一版執筆時に「はてさてどっちが吉となるか？俺はinputを選ぶぜ！」とか書いてたんですけども敗北しました。
+すみませんでした…。
+
+なぜこれがアンチパターンだと考えるようになったかを説明します。
+
+ 1. フロント側的にはinputでまとめなくてもvariablesでまとまる
+ 2. 引数を明示的に指定するのは2-3がほとんどであまり多くならない
+ 3. デフォルト値の指定が活用できずつらい
+
+それぞれを軽く説明していきます。
+
+1. input要素にまとめるとフロントエンド内でオブジェクトをまとめるのが楽になるのでは？と考えたのでした。
+しかし、現実のフロントエンドではinputにまとめる前にvariablesに入力をまとめます。
+さらに 2. にある通り、Queryに対して指定したい変数はだいたいの場合で2-3以下でした。
+よって、要素数の多さとその取り回しを心配する必要を感じませんでした。
+
+さらに、3. で悪くなる体験のほうが問題で、input objectの各フィールドにはデフォルト値が設定できません。
+これにより、Queryへの引数を明示的に設定してもいいし、デフォルトにまかせてもよい…というフロントエンド中での省力化ができません。
+さらに、スキーマの定義中でデフォルト値が設定できないのも不便です。
+スキーマ内でデフォルト値が設定されていれば、@<code>{orderBy: OrderBy = SCORE}とある場合、デフォルトはスコア順だということがわかります。
+これはドキュメントコメントに"デフォルトはスコア順ソートだよ"と書かれているよりも、遥かに明確に納得できます。
+
+これらの利点を捨てるほうがデメリットが大きい、と判断し、第2版執筆時点ではQueryではinput objectを使わない方針に改めました。
+ここでもGitHubがやっていない工夫はしないほうがよい、という学習が強化されました。
+
+さて、話を戻してCursor Connectionsの仕様を無視すると発生しうる問題、そしてワザと無視してもよい場合について考えます。
 
 GraphQLではクライアント側から自由なクエリを投げることができます。
 つまり、サーバのリソースを食い尽くすようなクエリをワザと投げることができてしまいます。
@@ -336,7 +364,13 @@ APIを外部に晒す必要があるシステムの場合、これらの制限�
 コスト計算を厳密にやらなければいけないのは、コストがかかる場合のみです。
 
 リストの要素がGraphQLのスカラ型であれば、それ以上他の型に展開されることはありません。
-あとは、そのリスト自体がプログラム中にハードコーディングできる場合、データベースのカラムに配列が保存できる場合はデータの取得コストも気にする必要はないでしょう。
+
+第2版時点で得た教訓として、リストの要素がスカラ型ではない場合、たとえそれがプログラム中にハードコーディングされるような、固定長のリストでも油断するべきではありません。
+最初は他のオブジェクトへのリレーションを持たずとも、ある日突然別の型に派生する日が来るかもしれない。
+それがGraphQLの強みであり、予想のつかなさでもあるのです。
+このような場合、インメモリでのページング処理を実装し、Connectionを提供するようにしましょう。
+Connectionにしなくてよいのはスカラ型のリストだけです。
+
 #@# OK gfx: Connectionはな〜モバイルアプリ的にはページングはこれでいいんだけど、デスクトップ向けのウェブアプリ的には、ページナビゲーション（"<< 1 2 3 ... 10 >>" みたいなやつ）を作れないから結構使いにくいんだよな〜もっとシンプルな仕様でいい気はするんだよな〜（独り言です）
 #@# OK vv: 長年Datastoreを使ってる人間からするとページナビゲーションを採用するのは気が狂った選択だと思います！Gmailが実装してないUIは使っちゃいけないんだ！(暴論)
 
@@ -493,17 +527,94 @@ mutation {
 //}
 
 残念ながら、削除したIDであることを示すコンセンサスの取れたフィールド名はありません。
-レスポンスに削除したIDを含むデータ全体を返すのでもよいですし、削除したIDをもつフィールドをPayloadに明示的に含めるのでもよいでしょう。
-GitHub v4 APIは前者を選んでいます。
-筆者は今のところ、見てわかりやすい後者を選択しています。
 
 Connectionへの追加、削除についてはドメイン知識が必要になるため、ライブラリに全自動的に処理させるのは難しいでしょう。
 代わりに、今行ったMutationがどういう処理で、どういう結果が返ってきて、どうやったら既存のConnectionに追加、削除できるかを人間は理解できるはずです。
 人間が頑張りましょう。
 実際にどういう処理を書くかはクライアントライブラリごとに大きくことなるため、ここでは割愛します。
+第2版執筆時点では、Apollo Clientではページング、つまりConnectionの操作についてはまったく別の仕様がでてきていて、Connectionの操作についてはRelay専用の話題という側面が大きくなりました。
 
 キャッシュに適切なデータの追加を行うためには、Connectionの利用箇所で使っているFragmentをレスポンスに対して再利用できるような構造でなくてはいけません。
 REST APIだとつい空のJSONを返してしまったりする場合がありますが、GraphQLではちゃんと操作した該当データを返却するようにしましょう。
+@<code>{NoopPayload}のような、データを何も含まないレスポンスの設計は明確にアンチパターンであると言えます。
 
 #@# OK zoncoen: Mutations updater に関してもレスポンスの例があると初心者にも理解しやすいと思いました
 #@# OK vv: 削除されたIDのくだりの例を追加してみました！他2つはガッツリクライアント側コードの話になるので割愛します…！
+
+前述のとおり、レスポンスに削除したIDを含むデータ全体を返すのでもよいですし、削除したIDをもつフィールドをPayloadに明示的に含めるのでもよいでしょう。
+GitHub v4 APIは前者を選んでいます。
+第1版時点での筆者は、見てわかりやすい後者を選択しました。
+第2版時点では、これもまた宗旨変えしGitHubと同じスタイルに落ち着いています。
+これについても、なぜ考えを変えたのか、背景をお伝えします。
+
+なぜGitHub方式にしたかというと、そのほうがフロントエンド側のコードを書かずに済むからです。
+つまり、楽さ重視です。
+画面の更新をするために必要なことは、サーバ側で消したはずのデータをキャッシュから消すこと…と思いがちですが、実はそうじゃない場合が多くあります。
+表示したくないデータをキャッシュから消すのではなく、表示に使うデータ間の繋がりを断ち切ることで表示を行えないようにします。
+
+あるサークルにチェックがついているか？という情報を表す場合、@<list>{checked-circle}のようなクエリで@<list>{checked-circle-resp}のようなデータが取れるとします。
+
+//list[checked-circle][あるサークルにチェックをしたかどうか]{
+query {
+  node(id: "CircleExhibitInfo:5752754626625536") {
+    ... on CircleExhibitInfo {
+      id
+      loginUserChecked {
+        id
+      }
+    }
+  }
+}
+//}
+
+//list[checked-circle-resp][得られるデータ]{
+{
+  "data": {
+    "node": {
+      "id": "CircleExhibitInfo:5752754626625536",
+      "loginUserChecked": {
+        "id": "CheckedCircleExhibit:5629499534213120:5752754626625536"
+      }
+    }
+  }
+}
+//}
+
+このチェックを消すとき、@<list>{remove-checked-mutation}のように、サークルにチェックがなくなっていることがわかるようなレスポンスを要求します。
+すると、@<list>{remove-checked-mutation-resp}のように、消したデータの箇所がnullになっている結果が得られます（当然）。
+
+//list[remove-checked-mutation][消した後の正しい形が観測できるレスポンスを要求]{
+mutation {
+  removeCheckedCircle(input: {circleExhibitInfoID: "CheckedCircleExhibit:5629499534213120:5752754626625536"}) {
+    checkedCircleExhibit {
+      id
+      circle {
+        id
+        # 削除前はここにデータが存在していた…！
+        loginUserChecked {
+          id
+        }
+      }
+    }
+  }
+}
+//}
+
+//list[remove-checked-mutation-resp][消した箇所のデータがnullになっている]{
+{
+  "data": {
+    "removeCheckedCircle": {
+      "checkedCircleExhibit": {
+        "id": "CheckedCircleExhibit:5629499534213120:5752754626625536",
+        "circle": {
+          "id": "CircleExhibitInfo:5752754626625536",
+          "loginUserChecked": null
+        }
+      }
+    }
+  }
+}
+//}
+
+すると、キャッシュ中のサークルと、サークルチェックのデータの繋がりが失われるため、自動的に画面は意図通りに更新されます。
+このように、Mutationの返り値はキャッシュデータを更新するためにある、と考えるとGitHub方式のほうがコード中でキャッシュ操作を行わなくてもよいためお手軽です。
