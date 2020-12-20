@@ -4,16 +4,18 @@ graphql-schema-linter@<fn>{graphql-schema-linter}はGraphQLスキーマの定義
 筆者の知る限り、GraphQLのスキーマに対して何らかの警告を行ってくれる著名なツールは他に存在しません。
 もし知っている人がいればぜひ筆者（@vvakame）までお報せください。
 
+//footnote[graphql-schema-linter][@<href>{https://www.npmjs.com/package/graphql-schema-linter}]
+
+//comment{
 このgraphql-schema-linterですが、欠点があります。
 任意のスキーマへの警告をdisableにできない@<fn>{issue-disable-rules}というもので、有用な警告でも一部で無視したい場合、全体をOFFにしなければいけません。
 これはかなり不便です。
 
-//footnote[graphql-schema-linter][@<href>{https://www.npmjs.com/package/graphql-schema-linter}]
 //footnote[issue-disable-rules][@<href>{https://github.com/cjoudrey/graphql-schema-linter/issues/18}]
-
 不便なのであればパッチでも送って自分で直せよ、という話なんですが忙しさを言い訳にしてやってませんすみません…。
+//}
 
-ともあれ、自分でルールを作れるようになると安心できる領域が広がるのでお勧めです。
+自分でルールを作れるようになると安心できる領域が広がるのでお勧めです。
 この章では、graphql-schema-linterがどのようなルールをもつか、どういうアーキテクチャなのか、どのようなルールのアイディアがあるかの紹介をしていきたいと思います。
 
 == チェック対象のスキーマをどう得るか
@@ -59,26 +61,33 @@ Introspection Queryについてここでは詳細に解説しませんが、Grap
 == デフォルトで用意されているルール
 
 デフォルトで利用可能なルールをざっくり説明します（@<table>{default-rules}）。
-かなり有用だと思いますので、全部有効にできるように頑張るとよいでしょう。
+かなり有用だと思いますので、全部有効にできるように頑張るとよいでしょう@<fn>{author-state}。
 
 //table[default-rules][デフォルトで用意されているルール]{
 ルール名称	概要
 ------------------------------------------------------
+@<code>{arguments-have-descriptions}	フィールドの引数はすべてdescriptionが書いてあるか
 @<code>{defined-types-are-used}	定義されているのに使われていない型がないか
 @<code>{deprecations-have-a-reason}	@<code>{@deprecated}に理由が書いてあるか
+@<code>{descriptions-are-capitalized}	descriptionが先頭大文字になっているか
 @<code>{enum-values-all-caps}	enumの値は全部大文字のSNAKE_CASEか
 @<code>{enum-values-have-descriptions}	enumの値はすべてdescriptionが書いてあるか
 @<code>{enum-values-sorted-alphabetically}	enumの値の定義がソートされているか
 @<code>{fields-are-camel-cased}	フィールドの名前がlowerCamelCaseか
 @<code>{fields-have-descriptions}	フィールドはすべてdescriptionが書いてあるか
+@<code>{input-object-fields-sorted-alphabetically}	input objectのフィールドがソートされているか
 @<code>{input-object-values-are-camel-cased}	input objectの値の名前はlowerCamelCaseか
 @<code>{input-object-values-have-descriptions}	input objectの値はすべてdescriptionが書いてあるか
+@<code>{interface-fields-sorted-alphabetically}	interfaceのフィールドがソートされているか
 @<code>{relay-connection-types-spec}	RelayのCursor Connectionsに準拠しているか
 @<code>{relay-connection-arguments-spec}	同上
 @<code>{relay-page-info-spec}	同上
+@<code>{type-fields-sorted-alphabetically}	型のフィールドがソートされているか
 @<code>{types-are-capitalized}	型名は先頭が大文字かどうか
 @<code>{types-have-descriptions}	型はすべてdescriptionが書いてあるか
 //}
+
+//footnote[author-state][といいつつ筆者は概要必須系とアルファベット順ソート系は利用していない場合が多いです。]
 
 == どうやって動作しているか
 
@@ -184,11 +193,12 @@ Node.jsに慣れていない人には若干酷な話ですが、GraphQL界隈の
 
 というわけで、まずは筆者が技術書典Webで運用しているカスタムルールを解説してみます。
 大変申し訳ないですがカスタムルールの実装は公開していません…。
-先に警告を無視するパッチを作って、ダメだったら自分でlinter書き直して、いやApolloのクライアント側スキーマを考慮するとeslintプラグイン前提でやったほうが…？とか考え始めたらめんどくさくなったからです。
-罪深い…。
+第1版執筆時点に比べると警告を抑制する手段がgraphql-schema-linterに追加されていたりして、状況は明るくなっています@<fn>{linter-patch}。
+
+//footnote[linter-patch][@<href>{https://github.com/cjoudrey/graphql-schema-linter/pull/271}が最後の足りないパーツ]
 
 御託はいいから先に公開しろゴルァ！とかいわれたら公開すると思います…。
-技術書典7が終わった後に…！
+技術書典10が終わった後に…！
 
 ==== @<code>{field-name-matches-input-type}
 
@@ -225,16 +235,16 @@ inputの省略可不可と、input objectの値がNonNullかどうかは基本�
  * オブジェクト名の末尾が "Payload" なもの
  * フィールド名が "edges" の場合
  * フィールド名が "nodes" の場合
- * リストの要素がスカラ型の場合
+ * リストの要素がスカラ型かenumの場合
 
 これに当てはまる場合は、complexityを計算する上で障害にならないからです。
 
 このルールを無視すると後で本当に辛い目にあります。
-筆者は現在進行系で辛い目にあっています。
+筆者は第1版執筆時点で、辛い目にあっていました。
 @<code>{CircleExhibitInfo}はDB上に@<code>{tagID: [ID!]!}的な構造を持ち、これは"ついで"に取れます。
 なので安易な気持ちで@<code>{tags: [Tag!]!}という定義をルールに逆らって作ってしまいました。
 すると@<code>{Tag}はいくつかのさらなる別の型への展開を持ち、ここでcomplexityの計算が崩壊しました。
-教訓として、DBから1アクションで取れるリストデータであっても、非スカラ型の場合インメモリでCursor Connections相当の構造に変換するべきです。
+教訓として、DBから1アクションで取れるリストデータであっても、スカラ型でもenumでもない場合はインメモリでCursor Connections相当の構造に変換するべきです。
 つらいです。
 
 ==== @<code>{list-name-must-be-plural}
