@@ -131,7 +131,6 @@ Google Cloud Datastoreの場合、普通にcursorが取得できるのでそれ�
 
 @<chapref>{relay}のConnectionでも触れていますが、edgesを実現するためには可能な限りすべてのデータに対してcursorをつける必要があります。
 Datastoreではある時点でのcursorを計算するためにRPCが発生するのでこの点では若干不利です。
-#@# TODO Apollo Client v3 のpaginationの話
 
 RDBに馴染んだ人がよく苦しむのが、総ページ数の表示とページジャンプの実装どうするの？という問題です。
 実装を諦めるとすべてが解決します。
