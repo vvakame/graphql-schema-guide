@@ -4,9 +4,6 @@ TODO
 
 Organizationの導入とか色々あるけどスキーマ設計以外の話題は省く。
 
- * Relay Connectionを使ってなかった箇所を使うようにした
- ** 具体的に ProductInfo.images など APIで長さに制限をかけている箇所
- ** complexityの事前計算ができなくなるのでArrayにしていいのはScalarだけというルールは例外なしに守るべき
  * リファクタリングのやり方
  ** データ構造を拡張すると、以前とは違うデータの結びつきになるのは仕方がない
  ** @<code>{deprecated}@<fn>{deprecated-directive}をちゃんと使う
@@ -52,7 +49,7 @@ Organizationの導入とか色々あるけどスキーマ設計以外の話題�
  ** inputの定義もいっぱい消えた @<code>{clientMutationId}を持たないヤツは全部粛清
  * @<code>{nodes}と@<code>{edges}
  ** @<code>{edges}を使ったほうがキャッシュ効率よく処理できる可能性がある
- ** 前提条件としてすべてのedgesがcursorを持つ（@<code>{String!}）必要がある（そうでなければ嬉しくない）
+ ** 前提条件としてすべてのedgesがcursorをもつ（@<code>{String!}）必要がある（そうでなければ嬉しくない）
  * enumをちゃんと使おう
  ** めんどくさいからといって@<code>{String}をよく使っていた…
  ** よくなかった

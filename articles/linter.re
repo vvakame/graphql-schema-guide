@@ -6,15 +6,6 @@ graphql-schema-linter@<fn>{graphql-schema-linter}はGraphQLスキーマの定義
 
 //footnote[graphql-schema-linter][@<href>{https://www.npmjs.com/package/graphql-schema-linter}]
 
-//comment{
-このgraphql-schema-linterですが、欠点があります。
-任意のスキーマへの警告をdisableにできない@<fn>{issue-disable-rules}というもので、有用な警告でも一部で無視したい場合、全体をOFFにしなければいけません。
-これはかなり不便です。
-
-//footnote[issue-disable-rules][@<href>{https://github.com/cjoudrey/graphql-schema-linter/issues/18}]
-不便なのであればパッチでも送って自分で直せよ、という話なんですが忙しさを言い訳にしてやってませんすみません…。
-//}
-
 自分でルールを作れるようになると安心できる領域が広がるのでお勧めです。
 この章では、graphql-schema-linterがどのようなルールをもつか、どういうアーキテクチャなのか、どのようなルールのアイディアがあるかの紹介をしていきたいと思います。
 
