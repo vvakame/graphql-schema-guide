@@ -1,4 +1,4 @@
-= graphql-schema-linter のルールの作り方
+= graphql-schema-linter そのルールの作り方
 
 graphql-schema-linter@<fn>{graphql-schema-linter}はGraphQLスキーマの定義をチェックしてくれるlintツールです。
 筆者の知る限り、GraphQLのスキーマに対して何らかの警告を行ってくれる著名なツールは他に存在しません。
