@@ -22,10 +22,14 @@ bookname: graphql-schema-guide
 language: ja
 
 # 書名
-booktitle: {name: "Re:VIEWテンプレート", file-as: "reviewテンプレート"}
+booktitle:
+  name: "GraphQLスキーマ設計ガイド 第2版"
+  file-as: "グラフキューエルスキーマセッケイガイドダイニハン"
 
 # 著者名。「, 」で区切って複数指定できる
-aut: [{name: "TechBooster編", file-as: "techboosterヘン"}]
+aut:
+  - name: "vvakame"
+    file-as: "ワカメ"
 
 # 以下はオプション
 # 以下はオプション(autと同じように配列書式で複数指定可能)。
@@ -69,15 +73,17 @@ pbl: ひかる黄金わかめ帝国
 # contact: 連絡先
 
 # 刊行日(省略した場合は実行時の日付)
-date: 2019-9-22
+date: "2020-12-26"
 # 発行年月。YYYY-MM-DD形式による配列指定。省略した場合はdateを使用する
 # 複数指定する場合は次のように記述する
 # [["初版第1刷の日付", "初版第2刷の日付"], ["第2版第1刷の日付"]]
 # 日付の後ろを空白文字で区切り、任意の文字列を置くことも可能。
-history: [["2019-9-22 技術書典7版 v1.0.0"]]
+history:
+  - ["2019-9-22 技術書典7版 v1.0.0"]
+  - ["2020-12-26 技術書典10版 v2.0.0"]
 # 権利表記(配列で複数指定可)
 # rights: (C) 2016 Re:VIEW Developers
-rights: (C) 2019 ひかる黄金わかめ帝国
+rights: (C) 2019-2020 ひかる黄金わかめ帝国
 # description: 説明
 # subject: 短い説明用タグ(配列で複数指定可)
 # type: 書籍のカテゴリーなど(配列で複数指定可)
