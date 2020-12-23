@@ -4,5 +4,12 @@
 version: 1
 
 imports:
+  - ../prh-rules/files/review.yml
   # 気合で移行した気持ちになった
   - ../prh-rules/media/techbooster.yml
+
+rules:
+  - expected: スカラ型
+    pattern:  Scalar
+  - expected: スカラ型
+    pattern:  /スカラ(?!型)/
