@@ -72,8 +72,8 @@ AWSは知らん！たぶんAuroraあたりがそれなんじゃないでしょ�
 
 == 謝辞（第二版）
 
-#@# TODO 後で書く
-TBD
+イベント3日前に唐突にまたレビュー依頼をしてしまいました…。
+@sonatard さん、@chidakiyo さん、本当にありがとうございました！
 
 //comment{
  * https://tech.mercari.com/entry/2018/10/24/111227 あたり読み返す？
