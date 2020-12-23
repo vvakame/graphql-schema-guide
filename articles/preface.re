@@ -7,8 +7,7 @@
 なぜ修正しようと思ったのか、それに至る背景を文章に反映し、最新の知見をお届けしたいと思います。
 かいつまんで変更差分が知りたい場合、GitHubで差分@<fn>{diff-v1-v2}を見ていただくのが役に立つかもしれません。
 
-#@# TODO あとで v2.0.0 タグ打って更新
-//footnote[diff-v1-v2][@<href>{https://github.com/vvakame/graphql-schema-guide/compare/v1.0.0...master}]
+//footnote[diff-v1-v2][@<href>{https://github.com/vvakame/graphql-schema-guide/compare/v1.0.0...v2.0.0}]
 
 筆者のGraphQL歴を紹介します。
 Go言語+gqlgen@<fn>{gqlgen-web}という構成で、MTC2018カンファレンスLP@<fn>{mtc2018}、技術書典Web@<fn>{tbf-web}、社内ツールのgchammer@<fn>{internal-tool}などを作成してきました。
