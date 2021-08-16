@@ -12,8 +12,10 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v2
-      - name: Setup
+      - name: setup
         run: npm ci
+      - name: test
+        run: npm test
       - name: build
         run: npm run pdf
       - name: archive
