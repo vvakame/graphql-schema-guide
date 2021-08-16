@@ -5,7 +5,7 @@ on:
       - 'master'
 
 jobs:
-  my_job:
+  build_pdf:
     runs-on: ubuntu-latest
     container:
       image: vvakame/review:5.0
@@ -19,7 +19,7 @@ jobs:
       - name: test
         run: npm test
       - name: build
-        run: npm run pdf
+        run: REVIEW_CONFIG_FILE=config-ebook.yml npm run pdf
       - name: archive
         uses: actions/upload-artifact@v2
         with:
