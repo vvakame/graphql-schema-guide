@@ -1,0 +1,23 @@
+name: Build PDF
+on:
+  push:
+    branches:
+      - 'master'
+
+jobs:
+  my_job:
+    runs-on: ubuntu-latest
+    container:
+      image: vvakame/review:5.0
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+      - name: Setup
+        run: npm ci
+      - name: build
+        run: npm run pdf
+      - name: archive
+        uses: actions/upload-artifact@v2
+        with:
+          name: graphql-schema-guide
+          path: graphql-schema-guide.pdf
