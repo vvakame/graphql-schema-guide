@@ -11,12 +11,6 @@ jobs:
       - run:
           name: Test
           command: npm test
-      - name: Find and Replace
-        uses: jacobtomlinson/gha-find-replace@master
-        with:
-          find: "coverimage: cover.png"
-          replace: ""
-          include: "./articles/config-ebook.yml"
       - run:
           name: Build PDF
           command: npm run pdf
