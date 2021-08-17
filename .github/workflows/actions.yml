@@ -1,0 +1,29 @@
+name: Build PDF
+on:
+  push:
+    branches:
+      - 'master'
+
+jobs:
+  build_pdf:
+    runs-on: ubuntu-latest
+    container:
+      image: vvakame/review:5.0
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+      - name: setup
+        run: npm ci
+      - name: post setup
+        run: bundle install
+      - name: test
+        run: npm test
+      - name: remove coverimage setting (only build time)
+        run: sed -i -e '/^coverimage/d' ./articles/config-ebook.yml
+      - name: build
+        run: REVIEW_CONFIG_FILE=config-ebook.yml npm run pdf
+      - name: archive
+        uses: actions/upload-artifact@v2
+        with:
+          name: graphql-schema-guide
+          path: ./articles/graphql-schema-guide.pdf
