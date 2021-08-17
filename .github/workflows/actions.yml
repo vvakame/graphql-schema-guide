@@ -18,6 +18,12 @@ jobs:
         run: bundle install
       - name: test
         run: npm test
+      - name: remove coverimage setting (only build time)
+        uses: jacobtomlinson/gha-find-replace@master
+        with:
+          find: "coverimage: cover.png"
+          replace: ""
+          include: "./articles/config-ebook.yml"
       - name: build
         run: REVIEW_CONFIG_FILE=config-ebook.yml npm run pdf
       - name: archive
